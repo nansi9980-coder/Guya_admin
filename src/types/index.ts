@@ -166,6 +166,7 @@ export interface ActivityLog {
   action: string
   entity: string
   entityId?: string
+  description?: string
   details?: Record<string, unknown>
   ipAddress?: string
   createdAt: string
