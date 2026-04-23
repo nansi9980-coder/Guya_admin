@@ -118,7 +118,8 @@ export default function UtilisateursPage() {
         await usersApi.update(editUser.id, data)
         toast.success('Utilisateur mis à jour')
       } else {
-        await usersApi.create(form)
+        const createData: any = { firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, role: form.role }
+        await usersApi.create(createData)
         toast.success('Utilisateur créé')
       }
       setModalOpen(false)
