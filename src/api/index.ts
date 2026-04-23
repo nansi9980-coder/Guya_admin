@@ -183,6 +183,9 @@ export const settingsApi = {
     ])
     return {
       companyName: company.name,
+      companyCity: company.city,
+      companySiret: company.siret,
+      companyWebsite: company.website,
       companyEmail: company.email,
       companyPhone: company.phone,
       companyAddress: company.address,
@@ -202,6 +205,9 @@ export const settingsApi = {
     if (data.companyEmail !== undefined) company.email = data.companyEmail
     if (data.companyPhone !== undefined) company.phone = data.companyPhone
     if (data.companyAddress !== undefined) company.address = data.companyAddress
+    if (data.companyCity !== undefined) company.city = data.companyCity
+    if (data.companySiret !== undefined) company.siret = data.companySiret
+    if (data.companyWebsite !== undefined) company.website = data.companyWebsite
     if (data.whatsappNumber !== undefined) site.whatsappNumber = data.whatsappNumber
     if (data.smtpHost !== undefined) smtp.host = data.smtpHost
     if (data.smtpPort !== undefined) smtp.port = data.smtpPort

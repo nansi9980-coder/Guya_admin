@@ -3,17 +3,16 @@ import { mediasApi } from '@/api'
 import type { Media } from '@/types'
 import { formatDate, formatFileSize } from '@/lib/utils'
 import {
-  Card, CardContent, PageHeader, Button, Spinner, EmptyState, Modal, Label, Input,
+  Card, CardContent, PageHeader, Button, Spinner, EmptyState, Modal,
 } from '@/components/ui'
 import { toast } from 'sonner'
-import { ImageIcon, Upload, Trash2, Copy, Search, RefreshCw, X } from 'lucide-react'
+import { ImageIcon, Upload, Trash2, Copy, Search, RefreshCw, Film } from 'lucide-react'
 
 export default function MediasPage() {
   const [medias, setMedias] = useState<Media[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<Media | null>(null)
   const [preview, setPreview] = useState<Media | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -58,6 +57,9 @@ export default function MediasPage() {
     toast.success('URL copiée !')
   }
 
+  const isVideo = (m: Media) => m.mimetype?.startsWith('video/')
+  const isImage = (m: Media) => m.mimetype?.startsWith('image/')
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -65,7 +67,14 @@ export default function MediasPage() {
         description={`${medias.length} fichier${medias.length > 1 ? 's' : ''}`}
         action={
           <div className="flex gap-2">
-            <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} />
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              className="hidden"
+              onChange={handleUpload}
+            />
             <Button onClick={() => fileRef.current?.click()} loading={uploading} size="sm">
               <Upload className="w-4 h-4" />
               {uploading ? 'Upload en cours…' : 'Uploader'}
@@ -84,7 +93,7 @@ export default function MediasPage() {
             <Upload className="w-5 h-5 text-primary" />
           </div>
           <p className="text-sm font-medium text-foreground">Glisser-déposer ou cliquer pour uploader</p>
-          <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF, WebP — Max 10 Mo</p>
+          <p className="text-xs text-muted-foreground mt-1">Images (PNG, JPG, GIF, WebP) et Vidéos (MP4, MOV, AVI) — Max 10 Mo</p>
         </CardContent>
       </Card>
 
@@ -117,8 +126,13 @@ export default function MediasPage() {
               className="group relative aspect-square rounded-xl overflow-hidden bg-muted cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all"
               onClick={() => setPreview(m)}
             >
-              {m.mimetype?.startsWith('image/') ? (
+              {isImage(m) ? (
                 <img src={m.url} alt={m.alt || m.originalName} className="w-full h-full object-cover" />
+              ) : isVideo(m) ? (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-muted">
+                  <Film className="w-8 h-8 text-primary" />
+                  <span className="text-[10px] text-muted-foreground px-2 truncate w-full text-center">{m.originalName}</span>
+                </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <ImageIcon className="w-8 h-8 text-muted-foreground" />
@@ -151,8 +165,16 @@ export default function MediasPage() {
         {preview && (
           <div className="space-y-4">
             <div className="rounded-xl overflow-hidden bg-muted max-h-80 flex items-center justify-center">
-              {preview.mimetype?.startsWith('image/') ? (
+              {isImage(preview) ? (
                 <img src={preview.url} alt={preview.alt || preview.originalName} className="max-h-80 max-w-full object-contain" />
+              ) : isVideo(preview) ? (
+                <video
+                  src={preview.url}
+                  controls
+                  className="max-h-80 max-w-full rounded-xl"
+                >
+                  Votre navigateur ne supporte pas la lecture vidéo.
+                </video>
               ) : (
                 <div className="py-16 text-muted-foreground"><ImageIcon className="w-16 h-16" /></div>
               )}

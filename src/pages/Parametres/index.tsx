@@ -235,6 +235,9 @@ export function ParametresPage() {
           <div><Label>Email de contact</Label><Input type="email" {...f('companyEmail')} placeholder="contact@guyafibre.com" /></div>
           <div><Label>Téléphone</Label><Input {...f('companyPhone')} placeholder="+594 0594 …" /></div>
           <div><Label>Adresse</Label><Input {...f('companyAddress')} placeholder="Cayenne, Guyane" /></div>
+          <div><Label>Ville</Label><Input {...f('companyCity')} placeholder="Cayenne, Guyane" /></div>
+          <div><Label>SIRET</Label><Input {...f('companySiret')} placeholder="123 456 789 00012" /></div>
+          <div><Label>Site web</Label><Input {...f('companyWebsite')} placeholder="www.guyafibre.com" /></div>
           <div><Label>WhatsApp</Label><Input {...f('whatsappNumber')} placeholder="+594 …" /></div>
         </Section>
 
