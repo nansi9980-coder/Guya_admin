@@ -1,19 +1,111 @@
 // ─── SERVICES PAGE ────────────────────────────────────────────────────────
-import { useEffect, useState, useCallback } from 'react'
-import { servicesApi } from '@/api'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { servicesApi, mediasApi } from '@/api'
 import type { Service } from '@/types'
 import { cn } from '@/lib/utils'
 import {
-  Card, CardContent, CardHeader, CardTitle, PageHeader, Button,
+  Card, CardContent, PageHeader, Button,
   Input, Label, Textarea, Switch, Spinner, EmptyState, Modal,
 } from '@/components/ui'
 import { toast } from 'sonner'
-import { Plus, Edit, Trash2, Wrench, Eye, EyeOff, GripVertical } from 'lucide-react'
+import { Plus, Edit, Trash2, Wrench, Upload, X } from 'lucide-react'
 
 const emptyService: Partial<Service> = {
-  name: '', slug: '', shortDescription: '', fullDescription: '', icon: '', isActive: true, order: 0
+  name: '', slug: '', shortDescription: '', fullDescription: '', icon: '', image: '', isActive: true, order: 0
 }
 
+// ─── Image Upload Field ──────────────────────────────────────────────────────
+function ImageUploadField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (url: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const handleFile = async (file: File) => {
+    setUploading(true)
+    try {
+      const media = await mediasApi.upload(file, 'Image de service')
+      onChange(media.url)
+      toast.success('Image téléchargée')
+    } catch {
+      toast.error('Erreur lors du téléchargement')
+    }
+    setUploading(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) handleFile(file)
+  }
+
+  return (
+    <div>
+      <Label>{label}</Label>
+      {value ? (
+        <div className="relative mt-1 rounded-xl overflow-hidden border border-border group">
+          <img src={value} alt="preview" className="w-full h-36 object-cover" />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="px-3 py-1.5 bg-white/90 text-xs font-medium rounded-lg text-foreground hover:bg-white transition-colors"
+            >
+              Changer
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="p-1.5 bg-white/90 rounded-lg text-destructive hover:bg-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onDrop={handleDrop}
+          onDragOver={e => e.preventDefault()}
+          onClick={() => inputRef.current?.click()}
+          className="mt-1 border-2 border-dashed border-border rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all"
+        >
+          {uploading ? (
+            <Spinner size="md" />
+          ) : (
+            <>
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Upload className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Glissez une image ou <span className="text-primary font-medium">parcourir</span>
+              </p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP jusqu'à 10 Mo</p>
+            </>
+          )}
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (file) handleFile(file)
+          e.target.value = ''
+        }}
+      />
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,7 +150,7 @@ export default function ServicesPage() {
     <div className="space-y-5">
       <PageHeader
         title="Services"
-        description="Gérez les services proposés sur votre site"
+        description="Gérez les services proposés sur votre site vitrine"
         action={<Button onClick={openCreate} size="sm"><Plus className="w-4 h-4" />Nouveau service</Button>}
       />
       {loading ? (
@@ -69,6 +161,11 @@ export default function ServicesPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map(s => (
             <Card key={s.id} className={cn(!s.isActive && 'opacity-60')}>
+              {s.image && (
+                <div className="aspect-video rounded-t-xl overflow-hidden">
+                  <img src={s.image} alt={s.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
@@ -94,6 +191,7 @@ export default function ServicesPage() {
           ))}
         </div>
       )}
+
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Modifier le service' : 'Nouveau service'} size="md">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -101,7 +199,15 @@ export default function ServicesPage() {
             <div><Label>Slug</Label><Input value={form.slug || ''} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} placeholder="nom-du-service" /></div>
           </div>
           <div><Label>Description courte</Label><Input value={form.shortDescription || ''} onChange={e => setForm(f => ({ ...f, shortDescription: e.target.value }))} placeholder="Résumé court" /></div>
-          <div><Label>Description complète</Label><Textarea rows={4} value={form.fullDescription || ''} onChange={e => setForm(f => ({ ...f, fullDescription: e.target.value }))} placeholder="Description détaillée…" /></div>
+          <div><Label>Description complète</Label><Textarea rows={3} value={form.fullDescription || ''} onChange={e => setForm(f => ({ ...f, fullDescription: e.target.value }))} placeholder="Description détaillée…" /></div>
+
+          {/* Image upload depuis l'appareil */}
+          <ImageUploadField
+            label="Image du service"
+            value={form.image || ''}
+            onChange={url => setForm(f => ({ ...f, image: url }))}
+          />
+
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Icône (emoji)</Label><Input value={form.icon || ''} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))} placeholder="🔧" /></div>
             <div><Label>Ordre d'affichage</Label><Input type="number" value={form.order || 0} onChange={e => setForm(f => ({ ...f, order: +e.target.value }))} /></div>

@@ -1,41 +1,34 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { statsApi } from '@/api'
 import type { DashboardData } from '@/types'
-import { formatRelative, formatAmount, cn } from '@/lib/utils'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Skeleton, PageHeader } from '@/components/ui'
+import { formatRelative, cn } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Skeleton, PageHeader } from '@/components/ui'
 import {
-  FileText, Users, TrendingUp, DollarSign, Clock,
+  Users, TrendingUp, Clock,
   CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight,
-  MapPin, Calendar, MoreHorizontal, XCircle,
+  Calendar, MessageCircle,
 } from 'lucide-react'
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
-  NEW: { label: 'Nouveau', cls: 'status-NEW' },
-  PENDING: { label: 'En attente', cls: 'status-PENDING' },
-  IN_PROGRESS: { label: 'En cours', cls: 'status-IN_PROGRESS' },
-  QUOTE_SENT: { label: 'Devis envoyé', cls: 'status-QUOTE_SENT' },
-  ACCEPTED: { label: 'Accepté', cls: 'status-ACCEPTED' },
-  COMPLETED: { label: 'Terminé', cls: 'status-COMPLETED' },
-  REJECTED: { label: 'Refusé', cls: 'status-REJECTED' },
-  CANCELLED: { label: 'Annulé', cls: 'status-CANCELLED' },
+  UNREAD: { label: 'Non lu', cls: 'status-NEW' },
+  READ: { label: 'Lu', cls: 'status-IN_PROGRESS' },
+  ARCHIVED: { label: 'Archivé', cls: 'status-COMPLETED' },
 }
 
 const CHART_COLORS = ['hsl(185,65%,45%)', 'hsl(28,85%,55%)', 'hsl(270,65%,60%)', 'hsl(142,70%,45%)']
 
-// Mock chart data (replace with real stats endpoint)
 const MONTHLY_DATA = [
-  { month: 'Oct', devis: 14, revenus: 18500 },
-  { month: 'Nov', devis: 22, revenus: 31200 },
-  { month: 'Déc', devis: 18, revenus: 24800 },
-  { month: 'Jan', devis: 28, revenus: 42000 },
-  { month: 'Fév', devis: 35, revenus: 58600 },
-  { month: 'Mar', devis: 31, revenus: 51000 },
-  { month: 'Avr', devis: 42, revenus: 67500 },
+  { month: 'Oct', contacts: 8 },
+  { month: 'Nov', contacts: 14 },
+  { month: 'Déc', contacts: 11 },
+  { month: 'Jan', contacts: 19 },
+  { month: 'Fév', contacts: 23 },
+  { month: 'Mar', contacts: 18 },
+  { month: 'Avr', contacts: 27 },
 ]
 
 function StatCard({ title, value, change, trend, icon: Icon, colorClass }: {
@@ -71,7 +64,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <p className="font-medium text-foreground mb-1">{label}</p>
       {payload.map((p: any, i: number) => (
         <p key={i} style={{ color: p.color }} className="text-xs">
-          {p.name}: <span className="font-semibold">{typeof p.value === 'number' && p.name === 'revenus' ? formatAmount(p.value) : p.value}</span>
+          {p.name}: <span className="font-semibold">{p.value}</span>
         </p>
       ))}
     </div>
@@ -90,10 +83,10 @@ export default function DashboardPage() {
   }, [])
 
   const stats = data ? [
-    { title: 'Demandes ce mois', value: data.stats.totalDevisThisMonth.toString(), change: '+12%', trend: 'up' as const, icon: FileText, colorClass: 'bg-primary/10 text-primary' },
-    { title: 'En attente', value: data.stats.pendingDevis.toString(), change: '-3%', trend: 'down' as const, icon: Clock, colorClass: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
+    { title: 'Messages ce mois', value: data.stats.totalDevisThisMonth.toString(), change: '+12%', trend: 'up' as const, icon: MessageCircle, colorClass: 'bg-primary/10 text-primary' },
+    { title: 'En attente de réponse', value: data.stats.pendingDevis.toString(), change: '-3%', trend: 'down' as const, icon: Clock, colorClass: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
     { title: 'Clients actifs', value: data.stats.activeClients.toString(), change: '+8%', trend: 'up' as const, icon: Users, colorClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-    { title: 'Revenus estimés', value: formatAmount(data.stats.monthlyRevenue), change: `${data.stats.monthlyChange >= 0 ? '+' : ''}${data.stats.monthlyChange}%`, trend: data.stats.monthlyChange >= 0 ? 'up' as const : 'down' as const, icon: DollarSign, colorClass: 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' },
+    { title: 'Taux de traitement', value: '87%', change: '+5%', trend: 'up' as const, icon: TrendingUp, colorClass: 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' },
   ] : []
 
   return (
@@ -101,12 +94,6 @@ export default function DashboardPage() {
       <PageHeader
         title="Tableau de bord"
         description="Vue d'ensemble de votre activité"
-        action={
-          <Link to="/devis" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
-            <FileText className="w-4 h-4" />
-            Voir les devis
-          </Link>
-        }
       />
 
       {/* Stats */}
@@ -119,17 +106,16 @@ export default function DashboardPage() {
 
       {/* Charts row */}
       <div className="grid lg:grid-cols-3 gap-4">
-        {/* Area chart */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Évolution des demandes</CardTitle>
-            <CardDescription>Devis reçus et revenus sur 7 mois</CardDescription>
+            <CardTitle>Évolution des contacts</CardTitle>
+            <CardDescription>Messages reçus sur 7 mois</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={MONTHLY_DATA} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
                 <defs>
-                  <linearGradient id="colorDevis" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorContacts" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(185,65%,45%)" stopOpacity={0.2} />
                     <stop offset="95%" stopColor="hsl(185,65%,45%)" stopOpacity={0} />
                   </linearGradient>
@@ -138,13 +124,12 @@ export default function DashboardPage() {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="devis" name="Demandes" stroke="hsl(185,65%,45%)" strokeWidth={2} fill="url(#colorDevis)" dot={{ fill: 'hsl(185,65%,45%)', r: 4 }} />
+                <Area type="monotone" dataKey="contacts" name="Contacts" stroke="hsl(185,65%,45%)" strokeWidth={2} fill="url(#colorContacts)" dot={{ fill: 'hsl(185,65%,45%)', r: 4 }} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Pie chart - top services */}
         <Card>
           <CardHeader>
             <CardTitle>Services populaires</CardTitle>
@@ -189,14 +174,12 @@ export default function DashboardPage() {
 
       {/* Bottom row */}
       <div className="grid lg:grid-cols-3 gap-4">
-        {/* Recent devis */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between pb-3">
             <div>
-              <CardTitle>Demandes récentes</CardTitle>
-              <CardDescription>5 dernières demandes reçues</CardDescription>
+              <CardTitle>Messages récents</CardTitle>
+              <CardDescription>5 derniers messages reçus</CardDescription>
             </div>
-            <Link to="/devis" className="text-xs text-primary hover:underline">Voir tout →</Link>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -210,14 +193,11 @@ export default function DashboardPage() {
                   return (
                     <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <FileText className="w-3.5 h-3.5 text-primary" />
+                        <MessageCircle className="w-3.5 h-3.5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{d.clientName}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3" />
-                          {d.location}
-                          <span>•</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {formatRelative(d.createdAt)}
                         </p>
                       </div>
@@ -230,18 +210,16 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Right column */}
         <div className="space-y-4">
-          {/* Quick stats */}
           <Card>
             <CardHeader>
               <CardTitle>Résumé rapide</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { icon: CheckCircle2, label: 'Devis traités', value: '92', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                { icon: CheckCircle2, label: 'Messages traités', value: '92', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                 { icon: AlertCircle, label: 'Urgents à traiter', value: '8', color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                { icon: TrendingUp, label: 'Taux de conversion', value: '73%', color: 'text-primary', bg: 'bg-primary/10' },
+                { icon: TrendingUp, label: 'Taux de traitement', value: '87%', color: 'text-primary', bg: 'bg-primary/10' },
               ].map(({ icon: Icon, label, value, color, bg }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', bg)}>
@@ -256,7 +234,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Interventions */}
           <Card>
             <CardHeader>
               <CardTitle>Interventions à venir</CardTitle>

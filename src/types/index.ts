@@ -94,8 +94,8 @@ export interface ContactListResponse {
 
 // Stats
 export interface DashboardStats {
-  totalDevisThisMonth: number
-  pendingDevis: number
+  totalDevisThisMonth: number   // mapped from contacts this month
+  pendingDevis: number          // mapped from unread contacts
   activeClients: number
   monthlyRevenue: number
   monthlyChange: number
@@ -103,7 +103,11 @@ export interface DashboardStats {
 
 export interface DashboardData {
   stats: DashboardStats
-  recentDevis: Devis[]
+  recentDevis: (Devis | {
+    id: string; reference: string; clientName: string; clientEmail: string
+    clientPhone: string; services: string[]; location: string; description: string
+    urgency: string; status: string; amount: null; createdAt: string; updatedAt: string
+  })[]
   topServices: { serviceName?: string; name?: string; count: number; percentage: number }[]
   upcomingInterventions: { client: string; service: string; date: string; technician: string }[]
 }

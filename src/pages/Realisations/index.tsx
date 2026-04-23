@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
-import { realisationsApi } from '@/api'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { realisationsApi, mediasApi } from '@/api'
 import type { Realisation } from '@/types'
 import { formatDate, cn } from '@/lib/utils'
 import {
@@ -7,13 +7,189 @@ import {
   Textarea, Switch, Spinner, EmptyState, Modal,
 } from '@/components/ui'
 import { toast } from 'sonner'
-import { Plus, Edit, Trash2, FolderKanban, Eye, EyeOff, MapPin, Star } from 'lucide-react'
+import { Plus, Edit, Trash2, FolderKanban, Eye, EyeOff, MapPin, Star, Upload, X, ImageIcon } from 'lucide-react'
 
 const emptyForm: Partial<Realisation> = {
   title: '', slug: '', description: '', category: '', location: '',
   client: '', isPublished: false, featured: false, images: [],
 }
 
+// ─── Image Upload Field ──────────────────────────────────────────────────────
+function ImageUploadField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (url: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const handleFile = async (file: File) => {
+    if (!file) return
+    setUploading(true)
+    try {
+      const media = await mediasApi.upload(file, 'Couverture de réalisation')
+      onChange(media.url)
+      toast.success('Image téléchargée')
+    } catch {
+      toast.error('Erreur lors du téléchargement')
+    }
+    setUploading(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) handleFile(file)
+  }
+
+  return (
+    <div>
+      <Label>{label}</Label>
+      {value ? (
+        <div className="relative mt-1 rounded-xl overflow-hidden border border-border group">
+          <img src={value} alt="preview" className="w-full h-40 object-cover" />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="px-3 py-1.5 bg-white/90 text-xs font-medium rounded-lg text-foreground hover:bg-white transition-colors"
+            >
+              Changer
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="p-1.5 bg-white/90 rounded-lg text-destructive hover:bg-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onDrop={handleDrop}
+          onDragOver={e => e.preventDefault()}
+          onClick={() => inputRef.current?.click()}
+          className="mt-1 border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all"
+        >
+          {uploading ? (
+            <Spinner size="md" />
+          ) : (
+            <>
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Upload className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Glissez une image ici ou <span className="text-primary font-medium">parcourir</span>
+              </p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP jusqu'à 10 Mo</p>
+            </>
+          )}
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (file) handleFile(file)
+          e.target.value = ''
+        }}
+      />
+    </div>
+  )
+}
+
+// ─── Multi-image Upload Field ────────────────────────────────────────────────
+function MultiImageUploadField({
+  value,
+  onChange,
+}: {
+  value: string[]
+  onChange: (urls: string[]) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const handleFiles = async (files: FileList) => {
+    setUploading(true)
+    const newUrls: string[] = []
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue
+      try {
+        const media = await mediasApi.upload(file, 'Image de réalisation')
+        newUrls.push(media.url)
+      } catch {
+        toast.error(`Erreur: ${file.name}`)
+      }
+    }
+    if (newUrls.length > 0) {
+      onChange([...value, ...newUrls])
+      toast.success(`${newUrls.length} image(s) ajoutée(s)`)
+    }
+    setUploading(false)
+  }
+
+  const remove = (idx: number) => {
+    onChange(value.filter((_, i) => i !== idx))
+  }
+
+  return (
+    <div>
+      <Label>Images du projet</Label>
+      <div className="mt-1 space-y-2">
+        {value.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {value.map((url, i) => (
+              <div key={i} className="relative aspect-video rounded-lg overflow-hidden border border-border group">
+                <img src={url} alt={`image-${i}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="absolute top-1 right-1 p-0.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div
+          onClick={() => inputRef.current?.click()}
+          className="border-2 border-dashed border-border rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all"
+        >
+          {uploading ? (
+            <Spinner size="sm" />
+          ) : (
+            <>
+              <ImageIcon className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Ajouter des images depuis votre appareil</span>
+            </>
+          )}
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={e => {
+            if (e.target.files?.length) handleFiles(e.target.files)
+            e.target.value = ''
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RealisationsPage() {
   const [items, setItems] = useState<Realisation[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,7 +241,7 @@ export default function RealisationsPage() {
     <div className="space-y-5">
       <PageHeader
         title="Réalisations"
-        description="Gérez vos projets et réalisations"
+        description="Gérez vos projets et réalisations affichés sur le site"
         action={<Button onClick={openCreate} size="sm"><Plus className="w-4 h-4" />Nouvelle réalisation</Button>}
       />
       {loading ? (
@@ -122,8 +298,21 @@ export default function RealisationsPage() {
             <div><Label>Localisation</Label><Input value={form.location || ''} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} /></div>
           </div>
           <div><Label>Client</Label><Input value={form.client || ''} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} /></div>
-          <div><Label>Description</Label><Textarea rows={4} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
-          <div><Label>Image de couverture (URL)</Label><Input value={form.coverImage || ''} onChange={e => setForm(f => ({ ...f, coverImage: e.target.value }))} placeholder="https://…" /></div>
+          <div><Label>Description</Label><Textarea rows={3} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
+
+          {/* Image de couverture — upload depuis l'appareil */}
+          <ImageUploadField
+            label="Image de couverture"
+            value={form.coverImage || ''}
+            onChange={url => setForm(f => ({ ...f, coverImage: url }))}
+          />
+
+          {/* Images supplémentaires — upload multiple */}
+          <MultiImageUploadField
+            value={form.images || []}
+            onChange={urls => setForm(f => ({ ...f, images: urls }))}
+          />
+
           <div className="flex items-center justify-between"><Label className="mb-0">Publié</Label><Switch checked={form.isPublished ?? false} onChange={v => setForm(f => ({ ...f, isPublished: v }))} /></div>
           <div className="flex items-center justify-between"><Label className="mb-0">Mis en avant</Label><Switch checked={form.featured ?? false} onChange={v => setForm(f => ({ ...f, featured: v }))} /></div>
           <div className="flex justify-end gap-2 pt-2">

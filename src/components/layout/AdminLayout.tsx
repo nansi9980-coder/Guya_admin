@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { cn, getInitials } from '@/lib/utils'
 import {
-  LayoutDashboard, FileText, MessageCircle, Users, Wrench,
+  LayoutDashboard, MessageCircle, Users, Wrench,
   FolderKanban, ImageIcon, Globe, Mail, BarChart3, History,
   Settings, LogOut, Menu, X, Sun, Moon,
   ClipboardList,
@@ -11,7 +11,6 @@ import {
 
 const NAV = [
   { label: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Devis & Demandes', href: '/devis', icon: FileText, badge: true },
   { label: 'Messages', href: '/contact', icon: MessageCircle },
   { label: 'Rapports', href: '/rapports', icon: ClipboardList },
   null,
@@ -158,7 +157,7 @@ export default function AdminLayout() {
             </button>
             {/* Voir le site */}
             <a
-              href="http://localhost:3000"
+              href="https://guya-fibre-three.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"

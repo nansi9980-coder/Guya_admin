@@ -4,7 +4,6 @@ import { useAuthStore } from '@/store/auth.store'
 import AdminLayout from '@/components/layout/AdminLayout'
 import LoginPage from '@/pages/Login'
 import DashboardPage from '@/pages/Dashboard'
-import DevisPage from '@/pages/Devis'
 import ContactPage from '@/pages/Contact'
 import UtilisateursPage from '@/pages/Utilisateurs'
 import ServicesPage from '@/pages/Services'
@@ -48,7 +47,6 @@ export default function AppRouter() {
           <Route element={<AdminLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/devis" element={<DevisPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/utilisateurs" element={<UtilisateursPage />} />
             <Route path="/services" element={<ServicesPage />} />
