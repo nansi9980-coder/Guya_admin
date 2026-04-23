@@ -149,7 +149,7 @@ export interface Media {
   id: string
   filename: string
   originalName: string
-  mimetype: string
+  mimeType: string
   size: number
   url: string
   path: string

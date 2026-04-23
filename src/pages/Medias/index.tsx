@@ -57,8 +57,8 @@ export default function MediasPage() {
     toast.success('URL copiée !')
   }
 
-  const isVideo = (m: Media) => m.mimetype?.startsWith('video/')
-  const isImage = (m: Media) => m.mimetype?.startsWith('image/')
+  const isVideo = (m: Media) => m.mimeType?.startsWith('video/')
+  const isImage = (m: Media) => m.mimeType?.startsWith('image/')
 
   return (
     <div className="space-y-5">
@@ -182,7 +182,7 @@ export default function MediasPage() {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><p className="text-xs text-muted-foreground">Nom original</p><p className="font-medium">{preview.originalName}</p></div>
               <div><p className="text-xs text-muted-foreground">Taille</p><p className="font-medium">{formatFileSize(preview.size)}</p></div>
-              <div><p className="text-xs text-muted-foreground">Type</p><p className="font-medium">{preview.mimetype}</p></div>
+              <div><p className="text-xs text-muted-foreground">Type</p><p className="font-medium">{preview.mimeType}</p></div>
               <div><p className="text-xs text-muted-foreground">Uploadé le</p><p className="font-medium">{formatDate(preview.createdAt)}</p></div>
             </div>
             <div>
