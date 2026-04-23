@@ -110,6 +110,16 @@ export default function UtilisateursPage() {
   }
 
   const handleSubmit = async () => {
+    if (!editUser) {
+      if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+        toast.error('Prénom, nom et email sont obligatoires')
+        return
+      }
+      if (!form.password || form.password.length < 6) {
+        toast.error('Le mot de passe doit contenir au moins 6 caractères')
+        return
+      }
+    }
     setSubmitting(true)
     try {
       if (editUser) {
