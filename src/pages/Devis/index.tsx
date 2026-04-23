@@ -11,7 +11,7 @@ import {
   Search, Download, Eye, Mail, Phone, FileText,
   MapPin, Calendar, Clock, CheckCircle2,
   AlertCircle, XCircle, RefreshCw, MoreHorizontal, Plus,
-  DollarSign, Printer,
+  Printer,
 } from 'lucide-react'
 
 // ─── MAPS ─────────────────────────────────────────────────────────────────
@@ -91,10 +91,6 @@ function generateDevisPDF(devis: Devis) {
         .services-list { display: flex; flex-wrap: wrap; gap: 8px; }
         .service-tag { background: #eff6ff; color: #1d4ed8; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid #bfdbfe; }
         .description-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; font-size: 13px; line-height: 1.7; color: #374151; }
-        .amount-box { background: linear-gradient(135deg, #0ea5e9 0%, #0891b2 100%); color: white; border-radius: 12px; padding: 24px; text-align: center; margin: 28px 0; }
-        .amount-box .label { font-size: 12px; opacity: 0.85; margin-bottom: 8px; }
-        .amount-box .value { font-size: 36px; font-weight: 900; letter-spacing: -1px; }
-        .amount-box .note { font-size: 11px; opacity: 0.7; margin-top: 6px; }
         .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 11px; color: #9ca3af; }
         .footer strong { color: #0ea5e9; }
         @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
@@ -141,14 +137,6 @@ function generateDevisPDF(devis: Devis) {
           <div class="description-box">${devis.description}</div>
         </div>
 
-        ${devis.amount ? `
-        <div class="amount-box">
-          <div class="label">Montant du devis estimé</div>
-          <div class="value">${Number(devis.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>
-          <div class="note">Devis établi par GUYA FIBRE — sous réserve de validation technique</div>
-        </div>
-        ` : ''}
-
         <div class="footer">
           <strong>GUYA FIBRE</strong> · Fibre optique en Guyane française<br/>
           12 Rue des Palmiers, 97320 Saint-Laurent-du-Maroni · contact@guyafibre.com<br/>
@@ -177,11 +165,10 @@ export default function DevisPage() {
   const [urgencyFilter, setUrgencyFilter] = useState('')
   const [selected, setSelected] = useState<Devis | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
-  const [actionModal, setActionModal] = useState<'respond' | 'note' | 'status' | 'amount' | null>(null)
+  const [actionModal, setActionModal] = useState<'respond' | 'note' | 'status' | null>(null)
   const [respondForm, setRespondForm] = useState({ subject: '', body: '' })
   const [noteText, setNoteText] = useState('')
   const [newStatus, setNewStatus] = useState('')
-  const [amount, setAmount] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const load = useCallback(async () => {
@@ -253,19 +240,6 @@ export default function DevisPage() {
     setSubmitting(false)
   }
 
-  const handleSetAmount = async () => {
-    if (!selected || !amount) return
-    setSubmitting(true)
-    try {
-      await devisApi.updateAmount(selected.id, parseFloat(amount))
-      toast.success('Montant enregistré')
-      setActionModal(null)
-      const full = await devisApi.getOne(selected.id)
-      setSelected(full)
-      load()
-    } catch { toast.error('Erreur') }
-    setSubmitting(false)
-  }
 
   const handleExport = async () => {
     try {
@@ -389,7 +363,6 @@ export default function DevisPage() {
                       <DropdownMenu
                         items={[
                           { label: 'Voir détails', icon: <Eye className="w-4 h-4" />, onClick: () => openDetail(d) },
-                          { label: 'Établir le devis', icon: <DollarSign className="w-4 h-4" />, onClick: () => { setSelected(d); setAmount(d.amount?.toString() || ''); setActionModal('amount') } },
                           { label: 'Répondre', icon: <Mail className="w-4 h-4" />, onClick: () => { setSelected(d); setActionModal('respond') } },
                           { label: 'Changer statut', icon: <RefreshCw className="w-4 h-4" />, onClick: () => { setSelected(d); setNewStatus(d.status); setActionModal('status') } },
                           { label: 'Ajouter note', icon: <Plus className="w-4 h-4" />, onClick: () => { setSelected(d); setActionModal('note') } },
@@ -462,18 +435,6 @@ export default function DevisPage() {
                   </div>
                 </div>
 
-                {selected.amount && (
-                  <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-                    <DollarSign className="w-5 h-5 text-primary shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Montant du devis</p>
-                      <p className="font-display font-bold text-xl text-foreground">
-                        {Number(selected.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Services demandés</p>
                   <div className="flex flex-wrap gap-2">
@@ -508,9 +469,6 @@ export default function DevisPage() {
                   <Button size="sm" onClick={() => setActionModal('respond')}>
                     <Mail className="w-4 h-4" />Répondre
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => { setAmount(selected.amount?.toString() || ''); setActionModal('amount') }}>
-                    <DollarSign className="w-4 h-4" />Établir le devis
-                  </Button>
                   <Button size="sm" variant="outline" onClick={() => { setNewStatus(selected.status); setActionModal('status') }}>
                     <RefreshCw className="w-4 h-4" />Changer statut
                   </Button>
@@ -525,34 +483,6 @@ export default function DevisPage() {
             )}
           </div>
         )}
-      </Modal>
-
-      {/* Amount Modal */}
-      <Modal open={actionModal === 'amount'} onClose={() => setActionModal(null)} title="Établir le montant du devis" size="sm">
-        <div className="space-y-4">
-          <div>
-            <Label>Montant (€)</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="number"
-                className="pl-9"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                placeholder="Ex: 1500"
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Ce montant apparaîtra sur le PDF du devis envoyé au client.</p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setActionModal(null)}>Annuler</Button>
-            <Button loading={submitting} onClick={handleSetAmount} disabled={!amount}>
-              <CheckCircle2 className="w-4 h-4" />Enregistrer
-            </Button>
-          </div>
-        </div>
       </Modal>
 
       {/* Respond Modal */}
