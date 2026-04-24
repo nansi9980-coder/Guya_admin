@@ -11,7 +11,7 @@ import {
   Search, Download, Eye, Mail, Phone, FileText,
   MapPin, Calendar, Clock, CheckCircle2,
   AlertCircle, XCircle, RefreshCw, MoreHorizontal, Plus,
-  DollarSign, Printer,
+  Printer,
 } from 'lucide-react'
 
 // ─── MAPS ─────────────────────────────────────────────────────────────────
@@ -106,6 +106,8 @@ function generateDevisPDF(devis: Devis) {
         <div class="header">
           <div>
             <div class="logo">GUYA <span>FIBRE</span></div>
+            <img src="${window.location.origin}/logo.png" alt="GUYA FIBRE" style="height:48px;width:auto;filter:brightness(0);margin-bottom:4px;" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'"/>
+            <div id="logo-fallback" style="display:none;font-size:26px;font-weight:900;color:#0ea5e9;letter-spacing:-1px;">GUYA <span style="color:#1a1a2e;">FIBRE</span></div>
             <div style="font-size:12px;color:#6b7280;margin-top:6px;">Fibre optique en Guyane française</div>
             <div style="font-size:12px;color:#6b7280;">contact@guyafibre.com · +594 6 94 43 54 84</div>
           </div>
@@ -182,7 +184,6 @@ export default function DevisPage() {
   const [respondForm, setRespondForm] = useState({ subject: '', body: '' })
   const [noteText, setNoteText] = useState('')
   const [newStatus, setNewStatus] = useState('')
-  const [amount, setAmount] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const load = useCallback(async () => {
@@ -250,20 +251,6 @@ export default function DevisPage() {
       setNoteText('')
       const full = await devisApi.getOne(selected.id)
       setSelected(full)
-    } catch { toast.error('Erreur') }
-    setSubmitting(false)
-  }
-
-  const handleSetAmount = async () => {
-    if (!selected || !amount) return
-    setSubmitting(true)
-    try {
-      await devisApi.updateAmount(selected.id, parseFloat(amount))
-      toast.success('Montant enregistré')
-      setActionModal(null)
-      const full = await devisApi.getOne(selected.id)
-      setSelected(full)
-      load()
     } catch { toast.error('Erreur') }
     setSubmitting(false)
   }
@@ -390,7 +377,6 @@ export default function DevisPage() {
                       <DropdownMenu
                         items={[
                           { label: 'Voir détails', icon: <Eye className="w-4 h-4" />, onClick: () => openDetail(d) },
-                          { label: 'Établir le devis', icon: <DollarSign className="w-4 h-4" />, onClick: () => { setSelected(d); setAmount(d.amount?.toString() || ''); setActionModal('amount') } },
                           { label: 'Répondre', icon: <Mail className="w-4 h-4" />, onClick: () => { setSelected(d); setActionModal('respond') } },
                           { label: 'Changer statut', icon: <RefreshCw className="w-4 h-4" />, onClick: () => { setSelected(d); setNewStatus(d.status); setActionModal('status') } },
                           { label: 'Ajouter note', icon: <Plus className="w-4 h-4" />, onClick: () => { setSelected(d); setActionModal('note') } },
@@ -463,18 +449,6 @@ export default function DevisPage() {
                   </div>
                 </div>
 
-                {selected.amount && (
-                  <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-                    <DollarSign className="w-5 h-5 text-primary shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Montant du devis</p>
-                      <p className="font-display font-bold text-xl text-foreground">
-                        {Number(selected.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Services demandés</p>
                   <div className="flex flex-wrap gap-2">
@@ -509,9 +483,6 @@ export default function DevisPage() {
                   <Button size="sm" onClick={() => setActionModal('respond')}>
                     <Mail className="w-4 h-4" />Répondre
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => { setAmount(selected.amount?.toString() || ''); setActionModal('amount') }}>
-                    <DollarSign className="w-4 h-4" />Établir le devis
-                  </Button>
                   <Button size="sm" variant="outline" onClick={() => { setNewStatus(selected.status); setActionModal('status') }}>
                     <RefreshCw className="w-4 h-4" />Changer statut
                   </Button>
@@ -526,34 +497,6 @@ export default function DevisPage() {
             )}
           </div>
         )}
-      </Modal>
-
-      {/* Amount Modal */}
-      <Modal open={actionModal === 'amount'} onClose={() => setActionModal(null)} title="Établir le montant de la réponse" size="sm">
-        <div className="space-y-4">
-          <div>
-            <Label>Montant (€)</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="number"
-                className="pl-9"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                placeholder="Ex: 1500"
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Ce montant apparaîtra sur le PDF de la prise de contact envoyé au client.</p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setActionModal(null)}>Annuler</Button>
-            <Button loading={submitting} onClick={handleSetAmount} disabled={!amount}>
-              <CheckCircle2 className="w-4 h-4" />Enregistrer
-            </Button>
-          </div>
-        </div>
       </Modal>
 
       {/* Respond Modal */}

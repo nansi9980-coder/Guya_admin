@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FileText, MessageCircle, Users, Wrench,
   FolderKanban, ImageIcon, Globe, Mail, BarChart3, History,
   Settings, LogOut, Menu, X, Sun, Moon,
-  Zap, ClipboardList,
+  ClipboardList,
 } from 'lucide-react'
 
 const NAV = [
@@ -62,13 +62,7 @@ export default function AdminLayout() {
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-3 px-5 border-b border-white/5">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/20">
-          <Zap className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-display font-semibold text-white tracking-wide">GUYA FIBRE</p>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest">Admin Panel</p>
-        </div>
+        <img src="/logo.png" alt="GUYA FIBRE" className="h-8 w-auto brightness-0 invert" />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">

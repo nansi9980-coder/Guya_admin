@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { toast } from 'sonner'
-import { Mail, Lock, Eye, EyeOff, Zap, Shield } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -40,10 +40,9 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm animate-fade-in">
         {/* Logo area */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 border border-primary/25 mb-4">
-            <Zap className="w-7 h-7 text-primary" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/logo.png" alt="GUYA FIBRE" className="h-16 w-auto brightness-0 invert" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-white">GUYA FIBRE</h1>
           <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
             <Shield className="w-3 h-3 text-primary" />
             <span className="text-xs text-white/50">Espace Administrateur</span>

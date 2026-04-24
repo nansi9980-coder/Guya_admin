@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { statsApi } from '@/api'
 import type { DashboardData } from '@/types'
-import { formatRelative, formatAmount, cn } from '@/lib/utils'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Skeleton, PageHeader } from '@/components/ui'
+import { formatRelative, cn } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Skeleton, PageHeader } from '@/components/ui'
 import {
-  FileText, Users, TrendingUp, DollarSign, Clock,
+  FileText, Users, TrendingUp, Clock,
   CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight,
-  MapPin, Calendar, MoreHorizontal, XCircle,
+  MapPin, Calendar,
 } from 'lucide-react'
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 
@@ -71,7 +71,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <p className="font-medium text-foreground mb-1">{label}</p>
       {payload.map((p: any, i: number) => (
         <p key={i} style={{ color: p.color }} className="text-xs">
-          {p.name}: <span className="font-semibold">{typeof p.value === 'number' && p.name === 'revenus' ? formatAmount(p.value) : p.value}</span>
+          {p.name}: <span className="font-semibold">{p.value}</span>
         </p>
       ))}
     </div>
@@ -93,7 +93,6 @@ export default function DashboardPage() {
     { title: 'Demandes ce mois', value: data.stats.totalDevisThisMonth.toString(), change: '+12%', trend: 'up' as const, icon: FileText, colorClass: 'bg-primary/10 text-primary' },
     { title: 'En attente', value: data.stats.pendingDevis.toString(), change: '-3%', trend: 'down' as const, icon: Clock, colorClass: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
     { title: 'Clients actifs', value: data.stats.activeClients.toString(), change: '+8%', trend: 'up' as const, icon: Users, colorClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-    { title: 'Revenus estimés', value: formatAmount(data.stats.monthlyRevenue), change: `${data.stats.monthlyChange >= 0 ? '+' : ''}${data.stats.monthlyChange}%`, trend: data.stats.monthlyChange >= 0 ? 'up' as const : 'down' as const, icon: DollarSign, colorClass: 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' },
   ] : []
 
   return (
@@ -110,9 +109,9 @@ export default function DashboardPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {loading
-          ? Array(4).fill(0).map((_, i) => <Card key={i}><CardContent className="p-5"><Skeleton className="h-24" /></CardContent></Card>)
+          ? Array(3).fill(0).map((_, i) => <Card key={i}><CardContent className="p-5"><Skeleton className="h-24" /></CardContent></Card>)
           : stats.map(s => <StatCard key={s.title} {...s} />)
         }
       </div>
