@@ -79,8 +79,8 @@ function generateDevisPDF(devis: Devis) {
         body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1a2e; background: #fff; }
         .page { max-width: 800px; margin: 0 auto; padding: 40px; }
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 3px solid #0ea5e9; }
-        .logo { font-size: 26px; font-weight: 900; color: #0ea5e9; letter-spacing: -1px; }
-        .logo span { color: #1a1a2e; }
+        .header-logo-band { background: #0f172a; border-radius: 10px; padding: 12px 20px; display: inline-block; margin-bottom: 10px; }
+        .header-logo-band img { height: 48px; width: auto; display: block; }
         .header-info { text-align: right; font-size: 12px; color: #6b7280; }
         .header-info strong { font-size: 20px; color: #1a1a2e; display: block; margin-bottom: 4px; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1d4ed8; margin-top: 6px; }
@@ -92,10 +92,6 @@ function generateDevisPDF(devis: Devis) {
         .services-list { display: flex; flex-wrap: wrap; gap: 8px; }
         .service-tag { background: #eff6ff; color: #1d4ed8; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid #bfdbfe; }
         .description-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; font-size: 13px; line-height: 1.7; color: #374151; }
-        .amount-box { background: linear-gradient(135deg, #0ea5e9 0%, #0891b2 100%); color: white; border-radius: 12px; padding: 24px; text-align: center; margin: 28px 0; }
-        .amount-box .label { font-size: 12px; opacity: 0.85; margin-bottom: 8px; }
-        .amount-box .value { font-size: 36px; font-weight: 900; letter-spacing: -1px; }
-        .amount-box .note { font-size: 11px; opacity: 0.7; margin-top: 6px; }
         .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 11px; color: #9ca3af; }
         .footer strong { color: #0ea5e9; }
         @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
@@ -105,9 +101,9 @@ function generateDevisPDF(devis: Devis) {
       <div class="page">
         <div class="header">
           <div>
-            <div class="logo">GUYA <span>FIBRE</span></div>
-            <img src="${window.location.origin}/logo.png" alt="GUYA FIBRE" style="height:48px;width:auto;filter:brightness(0);margin-bottom:4px;" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'"/>
-            <div id="logo-fallback" style="display:none;font-size:26px;font-weight:900;color:#0ea5e9;letter-spacing:-1px;">GUYA <span style="color:#1a1a2e;">FIBRE</span></div>
+            <div class="header-logo-band">
+              <img src="${window.location.origin}/logo.png" alt="GUYA FIBRE"/>
+            </div>
             <div style="font-size:12px;color:#6b7280;margin-top:6px;">Fibre optique en Guyane française</div>
             <div style="font-size:12px;color:#6b7280;">contact@guyafibre.com · +594 6 94 43 54 84</div>
           </div>
@@ -144,13 +140,6 @@ function generateDevisPDF(devis: Devis) {
           <div class="description-box">${devis.description}</div>
         </div>
 
-        ${devis.amount ? `
-        <div class="amount-box">
-          <div class="label">Montant du devis estimé</div>
-          <div class="value">${Number(devis.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>
-          <div class="note">Établi par GUYA FIBRE — sous réserve de validation technique</div>
-        </div>
-        ` : ''}
 
         <div class="footer">
           <strong>GUYA FIBRE</strong> · Fibre optique en Guyane française<br/>

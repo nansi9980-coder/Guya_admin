@@ -41,7 +41,7 @@ export default function LoginPage() {
         {/* Logo area */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="/logo.png" alt="GUYA FIBRE" className="h-16 w-auto brightness-0 invert" />
+            <img src="/logo.png" alt="GUYA FIBRE" className="h-16 w-auto" />
           </div>
           <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
             <Shield className="w-3 h-3 text-primary" />

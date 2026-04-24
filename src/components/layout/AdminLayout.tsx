@@ -62,7 +62,7 @@ export default function AdminLayout() {
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-3 px-5 border-b border-white/5">
-        <img src="/logo.png" alt="GUYA FIBRE" className="h-8 w-auto brightness-0 invert" />
+        <img src="/logo.png" alt="GUYA FIBRE" className="h-8 w-auto" />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
