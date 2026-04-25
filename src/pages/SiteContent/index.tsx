@@ -4,8 +4,9 @@ import {
   Card, CardContent, PageHeader, Button, Input, Label, Textarea, Spinner,
 } from '@/components/ui'
 import { toast } from 'sonner'
-import { Save, RefreshCw, ChevronDown, ChevronRight, Globe } from 'lucide-react'
+import { Save, RefreshCw, ChevronDown, ChevronRight, Globe, Quote, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
 
 // ─── SECTION EDITORS ──────────────────────────────────────────────────────
 
@@ -246,7 +247,7 @@ export default function SiteContentPage() {
         title="Contenu du site"
         description="Modifiez les textes et contenus affichés sur le site vitrine"
         action={
-          <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer"
+          <a href="https://guya-fibre-three.vercel.app/" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors">
             <Globe className="w-4 h-4" />Voir le site
           </a>
@@ -259,6 +260,21 @@ export default function SiteContentPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Raccourci vers la gestion des avis */}
+      <Link to="/temoignages">
+        <Card className="hover:ring-1 hover:ring-primary/30 transition-all cursor-pointer">
+          <div className="flex items-center gap-3 p-5">
+            <span className="text-2xl">💬</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-semibold text-foreground">Avis clients</p>
+              <p className="text-sm text-muted-foreground">Ajouter, modifier ou supprimer des témoignages</p>
+            </div>
+            <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
+        </Card>
+      </Link>
+
       <div className="space-y-3">
         {SECTIONS.map(s => <SectionCard key={s.key} section={s} />)}
       </div>

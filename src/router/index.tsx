@@ -11,6 +11,7 @@ import ServicesPage from '@/pages/Services'
 import RealisationsPage from '@/pages/Realisations'
 import MediasPage from '@/pages/Medias'
 import SiteContentPage from '@/pages/SiteContent'
+import TemoignagesPage from '@/pages/Temoignages'
 import EmailTemplatesPage from '@/pages/EmailTemplates'
 import LogsPage from '@/pages/Logs'
 import ParametresPage from '@/pages/Parametres'
@@ -55,6 +56,7 @@ export default function AppRouter() {
             <Route path="/realisations" element={<RealisationsPage />} />
             <Route path="/medias" element={<MediasPage />} />
             <Route path="/contenu" element={<SiteContentPage />} />
+            <Route path="/temoignages" element={<TemoignagesPage />} />
             <Route path="/emails" element={<EmailTemplatesPage />} />
             <Route path="/rapports" element={<RapportsPage />} />
             <Route path="/stats" element={<StatsPage />} />

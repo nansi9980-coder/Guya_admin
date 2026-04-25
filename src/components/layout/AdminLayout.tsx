@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FileText, MessageCircle, Users, Wrench,
   FolderKanban, ImageIcon, Globe, Mail, BarChart3, History,
   Settings, LogOut, Menu, X, Sun, Moon,
-  ClipboardList,
+  ClipboardList, Quote,
 } from 'lucide-react'
 
 const NAV = [
@@ -20,6 +20,7 @@ const NAV = [
   { label: 'Médias', href: '/medias', icon: ImageIcon },
   null,
   { label: 'Contenu du site', href: '/contenu', icon: Globe },
+  { label: 'Avis clients', href: '/temoignages', icon: Quote },
   { label: 'Templates Email', href: '/emails', icon: Mail },
   null,
   { label: 'Utilisateurs', href: '/utilisateurs', icon: Users },
