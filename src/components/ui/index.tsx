@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes } from 'react'
+import { cloneElement, createContext, forwardRef, isValidElement, useContext, useState, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type TextareaHTMLAttributes, type SelectHTMLAttributes } from 'react'
 
 // ─── BADGE ────────────────────────────────────────────────────────────────
 type BadgeVariant = 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' | 'info'
@@ -245,15 +245,28 @@ export function Label({ className, children, ...props }: React.LabelHTMLAttribut
 }
 
 // ─── SWITCH ───────────────────────────────────────────────────────────────
-interface SwitchProps { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }
-export function Switch({ checked, onChange, disabled }: SwitchProps) {
+interface SwitchProps {
+  checked: boolean
+  onChange?: (v: boolean) => void
+  onCheckedChange?: (v: boolean) => void
+  disabled?: boolean
+  id?: string
+}
+export function Switch({ checked, onChange, onCheckedChange, disabled, id }: SwitchProps) {
+  const handleChange = () => {
+    const next = !checked
+    onChange?.(next)
+    onCheckedChange?.(next)
+  }
+
   return (
     <button
       type="button"
+      id={id}
       role="switch"
       aria-checked={checked}
       disabled={disabled}
-      onClick={() => onChange(!checked)}
+      onClick={handleChange}
       className={cn(
         'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50',
         checked ? 'bg-primary' : 'bg-muted'
@@ -267,37 +280,207 @@ export function Switch({ checked, onChange, disabled }: SwitchProps) {
   )
 }
 
-// ─── DROPDOWN MENU ────────────────────────────────────────────────────────
-interface DropdownItem { label: string; icon?: React.ReactNode; onClick?: () => void; danger?: boolean; href?: string }
-interface DropdownMenuProps { items: DropdownItem[]; children: React.ReactNode }
-export function DropdownMenu({ items, children }: DropdownMenuProps) {
+// ─── DROPDOWN MENU ───────────────────────────────────────────────────────
+interface DropdownMenuContextValue {
+  open: boolean
+  toggle: () => void
+  close: () => void
+}
+const DropdownMenuContext = createContext<DropdownMenuContextValue | null>(null)
+
+interface DropdownMenuProps { children: ReactNode }
+export function DropdownMenu({ children }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
+
+  const toggle = () => setOpen((prev) => !prev)
+  const close = () => setOpen(false)
+
   return (
-    <div className="relative">
-      <div onClick={() => setOpen(!open)}>{children}</div>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-20 min-w-40 rounded-xl border border-border bg-card shadow-xl py-1 animate-fade-in">
-            {items.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => { item.onClick?.(); setOpen(false) }}
-                className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors text-left',
-                  item.danger
-                    ? 'text-destructive hover:bg-destructive/10'
-                    : 'text-foreground hover:bg-muted'
-                )}
-              >
-                {item.icon && <span className="text-muted-foreground">{item.icon}</span>}
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </>
+    <DropdownMenuContext.Provider value={{ open, toggle, close }}>
+      <div className="relative inline-block">{children}</div>
+    </DropdownMenuContext.Provider>
+  )
+}
+
+interface DropdownMenuTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean
+  children: ReactNode
+}
+export function DropdownMenuTrigger({ asChild, children, ...props }: DropdownMenuTriggerProps) {
+  const context = useContext(DropdownMenuContext)
+  if (!context) return null
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    context.toggle()
+  }
+
+  if (asChild && isValidElement(children)) {
+    return cloneElement(children, {
+      ...children.props,
+      ...props,
+      onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
+        children.props.onClick?.(event)
+        handleClick(event)
+      },
+    } as ReactElement)
+  }
+
+  return (
+    <button type="button" onClick={handleClick} {...props}>
+      {children}
+    </button>
+  )
+}
+
+interface DropdownMenuContentProps extends HTMLAttributes<HTMLDivElement> {
+  align?: 'start' | 'end'
+  children: ReactNode
+}
+export function DropdownMenuContent({ align = 'start', className, children, ...props }: DropdownMenuContentProps) {
+  const context = useContext(DropdownMenuContext)
+  if (!context?.open) return null
+
+  return (
+    <div
+      className={cn(
+        'absolute z-50 mt-2 min-w-[10rem] rounded-xl border border-border bg-card shadow-xl py-1',
+        align === 'end' ? 'right-0' : 'left-0',
+        className
       )}
+      {...props}
+    >
+      {children}
     </div>
+  )
+}
+
+interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode
+}
+export function DropdownMenuItem({ className, onClick, children, ...props }: DropdownMenuItemProps) {
+  const context = useContext(DropdownMenuContext)
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event)
+    context?.close()
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className={cn('flex w-full items-center gap-2 px-3 py-2 text-sm text-left text-foreground transition-colors hover:bg-muted', className)}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ─── DIALOG ───────────────────────────────────────────────────────────────
+interface DialogContextValue {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+const DialogContext = createContext<DialogContextValue | null>(null)
+
+interface DialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  children: ReactNode
+}
+export function Dialog({ open, onOpenChange, children }: DialogProps) {
+  return <DialogContext.Provider value={{ open, onOpenChange }}>{children}</DialogContext.Provider>
+}
+
+interface DialogContentProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode
+}
+export function DialogContent({ className, children, ...props }: DialogContentProps) {
+  const context = useContext(DialogContext)
+  if (!context?.open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" onClick={() => context.onOpenChange(false)} />
+      <div className={cn('relative w-full max-w-3xl overflow-hidden rounded-2xl bg-card shadow-2xl', className)} {...props}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export function DialogHeader({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn('px-6 pt-6 pb-4 border-b', className)} {...props}>
+      {children}
+    </div>
+  )
+}
+
+export function DialogTitle({ className, children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h2 className={cn('font-display font-semibold text-lg text-foreground', className)} {...props}>
+      {children}
+    </h2>
+  )
+}
+
+export function DialogDescription({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p className={cn('mt-1 text-sm text-muted-foreground', className)} {...props}>
+      {children}
+    </p>
+  )
+}
+
+export function DialogFooter({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn('flex items-center justify-end gap-3 p-4 border-t', className)} {...props}>
+      {children}
+    </div>
+  )
+}
+
+// ─── TABLE HELPERS ──────────────────────────────────────────────────────────
+export function TableHeader({ className, children, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
+  return (
+    <thead className={cn('border-b border-border', className)} {...props}>
+      {children}
+    </thead>
+  )
+}
+
+export function TableBody({ className, children, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
+  return (
+    <tbody className={cn('divide-y divide-border', className)} {...props}>
+      {children}
+    </tbody>
+  )
+}
+
+export function TableRow({ className, children, ...props }: HTMLAttributes<HTMLTableRowElement>) {
+  return (
+    <tr className={cn('hover:bg-muted/40 transition-colors', className)} {...props}>
+      {children}
+    </tr>
+  )
+}
+
+export function TableHead({ className, children, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <th className={cn('px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider', className)} {...props}>
+      {children}
+    </th>
+  )
+}
+
+export function TableCell({ className, children, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <td className={cn('px-4 py-3 text-sm text-foreground', className)} {...props}>
+      {children}
+    </td>
   )
 }
 
@@ -331,6 +514,3 @@ export function Tabs({ tabs, value, onChange }: TabsProps) {
     </div>
   )
 }
-
-// Need useState import
-import { useState } from 'react'

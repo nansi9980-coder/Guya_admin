@@ -27,17 +27,6 @@ const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
 
 const CHART_COLORS = ['hsl(185,65%,45%)', 'hsl(28,85%,55%)', 'hsl(270,65%,60%)', 'hsl(142,70%,45%)']
 
-// Mock chart data (replace with real stats endpoint)
-const MONTHLY_DATA = [
-  { month: 'Oct', devis: 14, revenus: 18500 },
-  { month: 'Nov', devis: 22, revenus: 31200 },
-  { month: 'Déc', devis: 18, revenus: 24800 },
-  { month: 'Jan', devis: 28, revenus: 42000 },
-  { month: 'Fév', devis: 35, revenus: 58600 },
-  { month: 'Mar', devis: 31, revenus: 51000 },
-  { month: 'Avr', devis: 42, revenus: 67500 },
-]
-
 function StatCard({ title, value, change, trend, icon: Icon, colorClass }: {
   title: string; value: string; change: string; trend: 'up' | 'down'
   icon: React.ElementType; colorClass: string
@@ -80,11 +69,24 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [chartData, setChartData] = useState<{ month: string; devis: number }[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    statsApi.getDashboard()
-      .then(setData)
+    Promise.all([
+      statsApi.getDashboard(),
+      statsApi.getCharts('month'),
+    ])
+      .then(([dashboard, charts]) => {
+        setData(dashboard)
+        // Normalise whatever shape the API returns
+        const rows: { month: string; devis: number }[] = Array.isArray(charts)
+          ? charts.map((r: any) => ({ month: r.month ?? r.label ?? '', devis: r.devis ?? r.count ?? 0 }))
+          : Array.isArray(charts?.data)
+            ? charts.data.map((r: any) => ({ month: r.month ?? r.label ?? '', devis: r.devis ?? r.count ?? 0 }))
+            : []
+        setChartData(rows)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -122,11 +124,12 @@ export default function DashboardPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Évolution des demandes</CardTitle>
-            <CardDescription>Prises de contact reçues et revenus sur 7 mois</CardDescription>
+            <CardDescription>Prises de contact reçues sur les derniers mois</CardDescription>
           </CardHeader>
           <CardContent>
+            {loading ? <Skeleton className="h-[220px]" /> : (
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={MONTHLY_DATA} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
                 <defs>
                   <linearGradient id="colorDevis" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(185,65%,45%)" stopOpacity={0.2} />
@@ -140,6 +143,7 @@ export default function DashboardPage() {
                 <Area type="monotone" dataKey="devis" name="Demandes" stroke="hsl(185,65%,45%)" strokeWidth={2} fill="url(#colorDevis)" dot={{ fill: 'hsl(185,65%,45%)', r: 4 }} />
               </AreaChart>
             </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
