@@ -5,6 +5,7 @@ import { formatRelative, formatDate, cn } from '@/lib/utils'
 import {
   Card, CardContent, PageHeader, Button, Input,
   Modal, Textarea, Label, Spinner, EmptyState, Table, Thead, Tbody, Th, Td, Tr, Tabs, DropdownMenu,
+  DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui'
 import { toast } from 'sonner'
 import {
@@ -363,18 +364,34 @@ export default function DevisPage() {
                       {formatRelative(d.createdAt)}
                     </Td>
                     <Td onClick={e => e.stopPropagation()}>
-                      <DropdownMenu
-                        items={[
-                          { label: 'Voir détails', icon: <Eye className="w-4 h-4" />, onClick: () => openDetail(d) },
-                          { label: 'Répondre', icon: <Mail className="w-4 h-4" />, onClick: () => { setSelected(d); setActionModal('respond') } },
-                          { label: 'Changer statut', icon: <RefreshCw className="w-4 h-4" />, onClick: () => { setSelected(d); setNewStatus(d.status); setActionModal('status') } },
-                          { label: 'Ajouter note', icon: <Plus className="w-4 h-4" />, onClick: () => { setSelected(d); setActionModal('note') } },
-                          { label: 'Télécharger PDF', icon: <Printer className="w-4 h-4" />, onClick: () => generateDevisPDF(d) },
-                        ]}
-                      >
-                        <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openDetail(d)}>
+                            <Eye className="w-4 h-4" />
+                            <span>Voir détails</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelected(d); setActionModal('respond') }}>
+                            <Mail className="w-4 h-4" />
+                            <span>Répondre</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelected(d); setNewStatus(d.status); setActionModal('status') }}>
+                            <RefreshCw className="w-4 h-4" />
+                            <span>Changer statut</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelected(d); setActionModal('note') }}>
+                            <Plus className="w-4 h-4" />
+                            <span>Ajouter note</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => generateDevisPDF(d)}>
+                            <Printer className="w-4 h-4" />
+                            <span>Télécharger PDF</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
                       </DropdownMenu>
                     </Td>
                   </Tr>
