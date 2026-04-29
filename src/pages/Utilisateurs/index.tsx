@@ -110,6 +110,20 @@ export default function UtilisateursPage() {
   }
 
   const handleSubmit = async () => {
+    // Validation côté client
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+      toast.error('Prénom, nom et email sont obligatoires')
+      return
+    }
+    if (!editUser && (!form.password || form.password.length < 6)) {
+      toast.error('Le mot de passe doit contenir au moins 6 caractères')
+      return
+    }
+    if (editUser && form.password && form.password.length < 6) {
+      toast.error('Le nouveau mot de passe doit contenir au moins 6 caractères')
+      return
+    }
+
     setSubmitting(true)
     try {
       if (editUser) {
@@ -118,13 +132,15 @@ export default function UtilisateursPage() {
         await usersApi.update(editUser.id, data)
         toast.success('Utilisateur mis à jour')
       } else {
-        await usersApi.create(form)
+        const { isActive, ...createData } = form
+        await usersApi.create({ ...createData, isActive })
         toast.success('Utilisateur créé')
       }
       setModalOpen(false)
       loadTeam()
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Erreur')
+      const msg = err.response?.data?.message
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Erreur')
     }
     setSubmitting(false)
   }
