@@ -12,7 +12,7 @@ import {
   Search, Download, Eye, Mail, Phone, FileText,
   MapPin, Calendar, Clock, CheckCircle2,
   AlertCircle, XCircle, RefreshCw, MoreHorizontal, Plus,
-  Printer,
+  Printer, Trash2,
 } from 'lucide-react'
 
 // ─── MAPS ─────────────────────────────────────────────────────────────────
@@ -175,6 +175,8 @@ export default function DevisPage() {
   const [noteText, setNoteText] = useState('')
   const [newStatus, setNewStatus] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<Devis | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -245,14 +247,26 @@ export default function DevisPage() {
     setSubmitting(false)
   }
 
-  const handleExport = async () => {
-    try {
+  const handleExport = async () => {    try {
       const blob = await devisApi.exportCsv({ search: search || undefined })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url; a.download = 'prises-de-contact.csv'; a.click()
       URL.revokeObjectURL(url)
     } catch { toast.error("Erreur lors de l'export") }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await devisApi.delete(deleteTarget.id)
+      toast.success('Prise de contact supprimée')
+      setDeleteTarget(null)
+      if (selected?.id === deleteTarget.id) setSelected(null)
+      load()
+    } catch { toast.error('Erreur lors de la suppression') }
+    setDeleting(false)
   }
 
   const totalPages = Math.ceil(total / 15)
@@ -391,6 +405,13 @@ export default function DevisPage() {
                             <Printer className="w-4 h-4" />
                             <span>Télécharger PDF</span>
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setDeleteTarget(d)}
+                            className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Supprimer</span>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </Td>
@@ -498,6 +519,14 @@ export default function DevisPage() {
                   <Button size="sm" variant="outline" onClick={() => generateDevisPDF(selected)}>
                     <Printer className="w-4 h-4" />PDF
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:hover:bg-red-950"
+                    onClick={() => { setDeleteTarget(selected); setSelected(null) }}
+                  >
+                    <Trash2 className="w-4 h-4" />Supprimer
+                  </Button>
                 </div>
               </>
             )}
@@ -554,6 +583,34 @@ export default function DevisPage() {
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setActionModal(null)}>Annuler</Button>
             <Button loading={submitting} onClick={handleAddNote} disabled={!noteText.trim()}>Ajouter</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Supprimer la prise de contact" size="sm">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+            <Trash2 className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Êtes-vous sûr de vouloir supprimer cette prise de contact ?</p>
+              {deleteTarget && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  <span className="font-mono">{deleteTarget.reference}</span> — {deleteTarget.clientName}
+                </p>
+              )}
+              <p className="text-xs text-red-500 mt-2">Cette action est irréversible.</p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Annuler</Button>
+            <Button
+              loading={deleting}
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white border-0"
+            >
+              <Trash2 className="w-4 h-4" />Supprimer définitivement
+            </Button>
           </div>
         </div>
       </Modal>

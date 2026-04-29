@@ -43,6 +43,8 @@ export const devisApi = {
     api.patch(`/devis/${id}/assign`, { userId }).then(r => r.data),
   exportCsv: (params?: PaginationParams) =>
     api.get('/devis/export', { params, responseType: 'blob' }).then(r => r.data),
+  delete: (id: string) =>
+    api.delete(`/devis/${id}`).then(r => r.data),
 }
 
 // ─── CONTACT ──────────────────────────────────────────────────────────────
