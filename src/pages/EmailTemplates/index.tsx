@@ -11,7 +11,7 @@ import { Mail, Save, Edit, ChevronDown, ChevronRight, Info } from 'lucide-react'
 const VARIABLE_DESCRIPTIONS: Record<string, string> = {
   clientName: 'Nom complet du client',
   name: 'Nom du contact',
-  reference: 'Numéro de référence (ex: DEV-2026-001)',
+  reference: 'Numéro de référence (ex: PRC-2026-001)',
   service: 'Service(s) demandé(s)',
   date: "Date de la demande",
   companyEmail: "Email de l'entreprise",
