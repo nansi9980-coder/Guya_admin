@@ -261,19 +261,47 @@ export default function SiteContentPage() {
         </CardContent>
       </Card>
 
-      {/* Raccourci vers la gestion des avis */}
-      <Link to="/temoignages">
-        <Card className="hover:ring-1 hover:ring-primary/30 transition-all cursor-pointer">
-          <div className="flex items-center gap-3 p-5">
-            <span className="text-2xl">💬</span>
-            <div className="flex-1 min-w-0">
-              <p className="font-display font-semibold text-foreground">Avis clients</p>
-              <p className="text-sm text-muted-foreground">Ajouter, modifier ou supprimer des témoignages</p>
+      {/* Raccourcis vers les listes dynamiques */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        <Link to="/services">
+          <Card className="hover:ring-1 hover:ring-primary/30 transition-all cursor-pointer h-full">
+            <div className="flex items-center gap-3 p-5">
+              <span className="text-2xl">🔧</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-foreground">Services</p>
+                <p className="text-sm text-muted-foreground">Gérer les prestations</p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
             </div>
-            <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
-          </div>
-        </Card>
-      </Link>
+          </Card>
+        </Link>
+
+        <Link to="/realisations">
+          <Card className="hover:ring-1 hover:ring-primary/30 transition-all cursor-pointer h-full">
+            <div className="flex items-center gap-3 p-5">
+              <span className="text-2xl">🏗️</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-foreground">Réalisations</p>
+                <p className="text-sm text-muted-foreground">Gérer les projets</p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+            </div>
+          </Card>
+        </Link>
+
+        <Link to="/temoignages">
+          <Card className="hover:ring-1 hover:ring-primary/30 transition-all cursor-pointer h-full">
+            <div className="flex items-center gap-3 p-5">
+              <span className="text-2xl">💬</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-foreground">Avis clients</p>
+                <p className="text-sm text-muted-foreground">Gérer les avis</p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+            </div>
+          </Card>
+        </Link>
+      </div>
 
       <div className="space-y-3">
         {SECTIONS.map(s => <SectionCard key={s.key} section={s} />)}

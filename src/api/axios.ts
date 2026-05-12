@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+const API_URL = import.meta.env.VITE_API_URL || 'https://guyafibrebackend-production.up.railway.app'
 
 export const api = axios.create({
   baseURL: `${API_URL}/api`,
