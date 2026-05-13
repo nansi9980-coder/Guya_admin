@@ -156,14 +156,14 @@ export function Modal({ open, onClose, title, description, children, size = 'md'
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className={cn('relative w-full rounded-2xl border border-border bg-card shadow-2xl animate-fade-in', sizes[size])}>
+      <div className={cn('relative w-full rounded-2xl border border-border bg-card shadow-2xl animate-fade-in max-h-[calc(100vh-2rem)] flex flex-col', sizes[size])}>
         {(title || description) && (
-          <div className="p-6 pb-4 border-b border-border">
+          <div className="p-6 pb-4 border-b border-border shrink-0">
             {title && <h2 className="font-display font-semibold text-lg text-foreground">{title}</h2>}
             {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
           </div>
         )}
-        <div className="p-6">{children}</div>
+        <div className="p-6 pt-2 overflow-y-auto custom-scrollbar flex-1">{children}</div>
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ import {
 } from '@/components/ui'
 import { toast } from 'sonner'
 import { Plus, Edit, Trash2, FolderKanban, Eye, EyeOff, MapPin, Star, X, ImageIcon, Upload } from 'lucide-react'
+import { getMediaUrl } from '@/lib/media'
 
 const emptyForm = (): Partial<Realisation> => ({
   titleFr: '',
@@ -50,7 +51,7 @@ function ImageUploadField({ images, onChange }: { images: string[]; onChange: (i
         <div className="grid grid-cols-3 gap-2">
           {images.map((url, i) => (
             <div key={i} className="relative aspect-video rounded-lg overflow-hidden bg-muted border border-border">
-              <img src={url} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+              <img src={getMediaUrl(url)} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
               <button
                 onClick={() => onChange(images.filter((_, j) => j !== i))}
                 className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
@@ -205,7 +206,7 @@ export default function RealisationsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="Réalisations"
         description="Gérez vos projets et réalisations"
@@ -218,15 +219,26 @@ export default function RealisationsPage() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map(r => (
-            <Card key={r.id} className={cn(!r.isActive && 'opacity-70')}>
-              <div className="aspect-video bg-muted rounded-t-xl overflow-hidden">
+            <Card key={r.id} className={cn(!r.isActive && 'opacity-70', "group overflow-hidden")}>
+              <div className="aspect-video bg-muted relative overflow-hidden border-b">
                 {r.images?.[0] ? (
-                  <img src={r.images[0]} alt={r.titleFr} className="w-full h-full object-cover" />
+                  <img src={getMediaUrl(r.images[0])} alt={r.titleFr} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    <FolderKanban className="w-8 h-8" />
+                    <FolderKanban className="w-8 h-8 opacity-20" />
                   </div>
                 )}
+                <div className="absolute top-2 left-2 flex gap-1">
+                  {r.isFeatured && (
+                    <div className="p-1 rounded bg-amber-500 text-white shadow-lg">
+                      <Star className="w-3 h-3 fill-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-white transition-all text-muted-foreground border border-border/50 shadow-sm"><Edit className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDelete(r.id)} className="p-1.5 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-white transition-all text-muted-foreground border border-border/50 shadow-sm"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
               </div>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -260,69 +272,81 @@ export default function RealisationsPage() {
       )}
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Modifier la réalisation' : 'Nouvelle réalisation'} size="lg">
-        <div className="space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
+        <div className="space-y-5 px-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label>Titre (FR) *</Label>
               <Input value={form.titleFr || ''} onChange={e => handleTitleChange(e.target.value)} placeholder="Ex: Déploiement FTTH Cayenne" />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>Slug *</Label>
               <Input value={form.slug || ''} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} placeholder="deploiement-ftth-cayenne" />
             </div>
           </div>
-          <div>
-            <Label>Titre (EN)</Label>
-            <Input value={form.titleEn || ''} onChange={e => setForm(f => ({ ...f, titleEn: e.target.value }))} placeholder="Optional English title" />
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label>Localisation *</Label>
               <Input value={form.location || ''} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Ex: Cayenne" />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>Date *</Label>
               <Input type="date" value={form.date || ''} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
             </div>
           </div>
-          <div>
-            <Label>Envergure / Portée *</Label>
-            <Input value={form.scope || ''} onChange={e => setForm(f => ({ ...f, scope: e.target.value }))} placeholder="Ex: 1 200 prises résidentielles" />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Envergure / Portée *</Label>
+              <Input value={form.scope || ''} onChange={e => setForm(f => ({ ...f, scope: e.target.value }))} placeholder="Ex: 1 200 prises résidentielles" />
+            </div>
+            <div className="space-y-2">
+              <Label>Client</Label>
+              <Input value={form.client || ''} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} placeholder="Nom du client" />
+            </div>
           </div>
-          <div>
-            <Label>Client</Label>
-            <Input value={form.client || ''} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} />
-          </div>
-          <div>
+
+          <div className="space-y-2">
             <Label>Description (FR) *</Label>
-            <Textarea rows={4} value={form.descFr || ''} onChange={e => setForm(f => ({ ...f, descFr: e.target.value }))} />
+            <Textarea rows={3} value={form.descFr || ''} onChange={e => setForm(f => ({ ...f, descFr: e.target.value }))} />
           </div>
-          <div>
-            <Label>Description (EN)</Label>
-            <Textarea rows={3} value={form.descEn || ''} onChange={e => setForm(f => ({ ...f, descEn: e.target.value }))} placeholder="Optional English description" />
-          </div>
-          <div>
+
+          <div className="space-y-2">
             <Label>Tags *</Label>
             <TagsField value={form.tags || []} onChange={tags => setForm(f => ({ ...f, tags }))} />
           </div>
-          <div>
-            <Label>Images</Label>
+
+          <div className="space-y-3 p-4 rounded-xl border border-border bg-muted/20">
+            <Label className="flex items-center gap-2 text-primary">
+              <ImageIcon className="w-4 h-4" />
+              Images de la réalisation
+            </Label>
             <ImageUploadField images={form.images || []} onChange={images => setForm(f => ({ ...f, images }))} />
           </div>
-          <div className="flex items-center justify-between">
-            <Label className="mb-0">Mis en avant</Label>
-            <Switch checked={form.isFeatured ?? false} onChange={v => setForm(f => ({ ...f, isFeatured: v }))} />
-          </div>
-          {editItem && (
-            <div className="flex items-center justify-between">
-              <Label className="mb-0">Actif (visible sur le site)</Label>
-              <Switch checked={form.isActive ?? false} onChange={v => setForm(f => ({ ...f, isActive: v }))} />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card shadow-sm">
+              <div className="space-y-0.5">
+                <Label className="mb-0">Mis en avant</Label>
+                <p className="text-[10px] text-muted-foreground">Apparaît en priorité sur le site</p>
+              </div>
+              <Switch checked={form.isFeatured ?? false} onChange={v => setForm(f => ({ ...f, isFeatured: v }))} />
             </div>
-          )}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button loading={submitting} onClick={handleSubmit}>{editItem ? 'Mettre à jour' : 'Créer'}</Button>
+            {editItem && (
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card shadow-sm">
+                <div className="space-y-0.5">
+                  <Label className="mb-0">Statut de publication</Label>
+                  <p className="text-[10px] text-muted-foreground">Visible ou masqué pour les visiteurs</p>
+                </div>
+                <Switch checked={form.isActive ?? false} onChange={v => setForm(f => ({ ...f, isActive: v }))} />
+              </div>
+            )}
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border/50">
+          <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
+          <Button loading={submitting} onClick={handleSubmit} className="px-8">{editItem ? 'Mettre à jour' : 'Créer'}</Button>
         </div>
       </Modal>
     </div>

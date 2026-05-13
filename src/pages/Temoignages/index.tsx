@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { siteContentApi } from '@/api'
 import {
-  Card, CardContent, PageHeader, Button, Input, Label, Textarea, Spinner,
+  Card, CardContent, PageHeader, Button, Input, Label, Textarea, Spinner, EmptyState, Modal,
 } from '@/components/ui'
 import { toast } from 'sonner'
-import { Save, Plus, Trash2, Star, GripVertical } from 'lucide-react'
+import { Plus, Edit, Trash2, Star, Quote, X, Save, RotateCcw } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Testimonial {
   initials: string
@@ -38,110 +39,16 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
           className="p-0.5 transition-transform hover:scale-110"
         >
           <Star
-            className={`w-5 h-5 transition-colors ${
+            className={cn(
+              "w-5 h-5 transition-colors",
               star <= (hovered || value)
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-muted-foreground/40'
-            }`}
+                ? 'fill-amber-400 text-amber-400'
+                : 'text-muted-foreground/30'
+            )}
           />
         </button>
       ))}
-      <span className="text-xs text-muted-foreground ml-1 self-center">{value}/5</span>
-    </div>
-  )
-}
-
-function TestimonialCard({
-  testimonial,
-  index,
-  onChange,
-  onRemove,
-}: {
-  testimonial: Testimonial
-  index: number
-  onChange: (t: Testimonial) => void
-  onRemove: () => void
-}) {
-  const f = (key: keyof Testimonial) => ({
-    value: String(testimonial[key] || ''),
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      onChange({ ...testimonial, [key]: e.target.value }),
-  })
-
-  return (
-    <div className="p-4 bg-muted/20 rounded-xl border border-border space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <GripVertical className="w-4 h-4 text-muted-foreground/40" />
-          <span className="text-sm font-medium text-muted-foreground">Avis #{index + 1}</span>
-        </div>
-        <button
-          onClick={onRemove}
-          className="text-xs text-destructive hover:underline flex items-center gap-1 transition-opacity hover:opacity-80"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Supprimer
-        </button>
-      </div>
-
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div>
-          <Label>Nom complet</Label>
-          <Input {...f('name')} placeholder="Marie-Josèphe L." />
-        </div>
-        <div>
-          <Label>Initiales (avatar)</Label>
-          <Input
-            value={testimonial.initials}
-            onChange={e => {
-              const val = e.target.value.toUpperCase().slice(0, 3)
-              onChange({ ...testimonial, initials: val })
-            }}
-            placeholder="MJ"
-            maxLength={3}
-          />
-        </div>
-      </div>
-
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div>
-          <Label>Rôle / Poste</Label>
-          <Input {...f('role')} placeholder="Directrice d'école" />
-        </div>
-        <div>
-          <Label>Entreprise / Lieu</Label>
-          <Input {...f('company')} placeholder="Maripasoula" />
-        </div>
-      </div>
-
-      <div>
-        <Label>Note</Label>
-        <StarRating
-          value={testimonial.rating}
-          onChange={v => onChange({ ...testimonial, rating: v })}
-        />
-      </div>
-
-      <div>
-        <Label>Témoignage</Label>
-        <Textarea
-          rows={3}
-          {...f('quote')}
-          placeholder="Décrivez l'expérience du client avec GUYA FIBRE…"
-        />
-      </div>
-
-      {/* Aperçu miniature */}
-      {testimonial.name && testimonial.quote && (
-        <div className="mt-2 p-3 bg-card rounded-lg border border-border/50">
-          <p className="text-xs text-muted-foreground italic line-clamp-2">
-            &ldquo;{testimonial.quote}&rdquo;
-          </p>
-          <p className="text-xs font-medium text-foreground mt-1">
-            — {testimonial.name}{testimonial.role ? `, ${testimonial.role}` : ''}
-          </p>
-        </div>
-      )}
+      <span className="text-xs text-muted-foreground ml-2 font-medium">{value}/5</span>
     </div>
   )
 }
@@ -151,6 +58,10 @@ export default function TestimonialsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [dirty, setDirty] = useState(false)
+  
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editIndex, setEditIndex] = useState<number | null>(null)
+  const [form, setForm] = useState<Testimonial>(EMPTY_TESTIMONIAL)
 
   useEffect(() => {
     loadTestimonials()
@@ -168,35 +79,49 @@ export default function TestimonialsPage() {
     setLoading(false)
   }
 
-  const handleChange = (index: number, updated: Testimonial) => {
-    const next = [...testimonials]
-    next[index] = updated
-    setTestimonials(next)
-    setDirty(true)
+  const openAdd = () => {
+    setEditIndex(null)
+    setForm(EMPTY_TESTIMONIAL)
+    setModalOpen(true)
   }
 
-  const handleAdd = () => {
-    setTestimonials(prev => [...prev, { ...EMPTY_TESTIMONIAL }])
+  const openEdit = (index: number) => {
+    setEditIndex(index)
+    setForm({ ...testimonials[index] })
+    setModalOpen(true)
+  }
+
+  const handleSubmit = () => {
+    if (!form.name || !form.quote) {
+      toast.error('Le nom et le témoignage sont requis')
+      return
+    }
+
+    const next = [...testimonials]
+    if (editIndex !== null) {
+      next[editIndex] = form
+    } else {
+      next.push(form)
+    }
+    
+    setTestimonials(next)
     setDirty(true)
+    setModalOpen(false)
+    toast.success(editIndex !== null ? 'Témoignage modifié' : 'Témoignage ajouté')
   }
 
   const handleRemove = (index: number) => {
     if (!confirm('Supprimer cet avis client ?')) return
     setTestimonials(prev => prev.filter((_, i) => i !== index))
     setDirty(true)
+    toast.success('Avis supprimé de la liste (n\'oubliez pas de sauvegarder)')
   }
 
   const handleSave = async () => {
-    // Validation basique
-    const invalid = testimonials.find(t => !t.name || !t.quote)
-    if (invalid) {
-      toast.error('Chaque avis doit avoir un nom et un texte de témoignage')
-      return
-    }
     setSaving(true)
     try {
       await siteContentApi.updateSection('testimonials', testimonials as any)
-      toast.success('Avis clients mis à jour — visibles sur le site')
+      toast.success('Avis clients mis à jour sur le site')
       setDirty(false)
     } catch {
       toast.error('Erreur lors de la sauvegarde')
@@ -217,90 +142,189 @@ export default function TestimonialsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
-        title="Avis clients"
-        description="Gérez les témoignages affichés sur le site vitrine"
+        title="Avis Clients"
+        description="Gérez les témoignages et recommandations affichés sur le site"
         action={
-          <div className="flex items-center gap-2">
-            {dirty && (
-              <span className="text-xs text-amber-500 font-medium">
-                Modifications non sauvegardées
-              </span>
-            )}
-            <Button variant="outline" size="sm" onClick={handleAdd}>
-              <Plus className="w-4 h-4" />
-              Ajouter un avis
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={openAdd} className="bg-background">
+              <Plus className="w-4 h-4 mr-2" />
+              Nouveau Témoignage
             </Button>
-            <Button size="sm" loading={saving} onClick={handleSave} disabled={!dirty}>
-              <Save className="w-4 h-4" />
+            <Button 
+              onClick={handleSave} 
+              loading={saving} 
+              disabled={!dirty}
+              className={cn(dirty && "ring-2 ring-primary ring-offset-2 animate-pulse-subtle")}
+            >
+              <Save className="w-4 h-4 mr-2" />
               Sauvegarder
             </Button>
           </div>
         }
       />
 
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">
-            Les avis sont affichés sur la page d'accueil du site vitrine.{' '}
-            <strong>L'ordre d'affichage</strong> correspond à l'ordre de la liste ci-dessous.
-          </p>
-        </CardContent>
-      </Card>
-
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <Spinner />
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {testimonials.length === 0 ? (
-            <Card>
-              <CardContent className="p-10 text-center">
-                <p className="text-muted-foreground text-sm mb-4">
-                  Aucun avis client pour l'instant.
-                </p>
-                <Button variant="outline" onClick={handleAdd}>
-                  <Plus className="w-4 h-4" />
-                  Ajouter le premier avis
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            testimonials.map((t, i) => (
-              <TestimonialCard
-                key={i}
-                testimonial={t}
-                index={i}
-                onChange={updated => handleChange(i, updated)}
-                onRemove={() => handleRemove(i)}
-              />
-            ))
-          )}
-
-          {testimonials.length > 0 && (
-            <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={handleReset}
-                className="text-xs text-destructive hover:underline"
-              >
-                Réinitialiser aux valeurs par défaut
-              </button>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={handleAdd}>
-                  <Plus className="w-4 h-4" />
-                  Ajouter un avis
-                </Button>
-                <Button size="sm" loading={saving} onClick={handleSave} disabled={!dirty}>
-                  <Save className="w-4 h-4" />
-                  Sauvegarder ({testimonials.length} avis)
-                </Button>
-              </div>
-            </div>
-          )}
+      {dirty && (
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 px-4 py-2 rounded-lg text-sm flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span>Vous avez des modifications non enregistrées</span>
+          </div>
+          <button onClick={() => setDirty(false)} className="text-xs hover:underline">Ignorer</button>
         </div>
       )}
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <Spinner size="lg" />
+          <p className="text-sm text-muted-foreground animate-pulse">Chargement des avis...</p>
+        </div>
+      ) : testimonials.length === 0 ? (
+        <EmptyState
+          icon={<Quote className="w-10 h-10" />}
+          title="Aucun témoignage"
+          description="Partagez l'expérience de vos clients pour renforcer votre crédibilité."
+          action={
+            <Button onClick={openAdd}>
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter le premier avis
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
+            <Card key={i} className="group relative hover:shadow-xl transition-all duration-300 border-border/60 bg-card overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 bg-gradient-to-l from-background/80 to-transparent z-20">
+                <button onClick={() => openEdit(i)} className="p-2 rounded-full bg-white shadow-lg text-primary hover:scale-110 transition-transform">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button onClick={() => handleRemove(i)} className="p-2 rounded-full bg-white shadow-lg text-destructive hover:scale-110 transition-transform">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-bold text-lg border border-primary/20">
+                    {t.initials || (t.name ? t.name.charAt(0) : '?')}
+                  </div>
+                  <div>
+                    <h4 className="font-display font-semibold text-foreground leading-tight">{t.name}</h4>
+                    <p className="text-xs text-muted-foreground">{t.role}{t.company ? ` @ ${t.company}` : ''}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: 5 }).map((_, starI) => (
+                    <Star key={starI} className={cn("w-3.5 h-3.5", starI < t.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20")} />
+                  ))}
+                </div>
+
+                <div className="relative">
+                  <Quote className="w-8 h-8 text-primary/5 absolute -top-2 -left-2" />
+                  <p className="text-sm text-foreground/80 leading-relaxed italic relative z-10 line-clamp-4">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                </div>
+              </CardContent>
+              
+              <div className="h-1 w-full bg-primary/20 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {testimonials.length > 0 && (
+        <div className="flex justify-between items-center pt-8 border-t border-border/50">
+          <Button variant="ghost" size="sm" onClick={handleReset} className="text-muted-foreground hover:text-destructive">
+            <RotateCcw className="w-3.5 h-3.5 mr-2" />
+            Réinitialiser par défaut
+          </Button>
+          <p className="text-xs text-muted-foreground italic">
+            Ordre d'affichage tel qu'apparaissant ci-dessus
+          </p>
+        </div>
+      )}
+
+      <Modal 
+        open={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        title={editIndex !== null ? 'Modifier le témoignage' : 'Nouveau témoignage'}
+        size="lg"
+      >
+        <div className="space-y-6 px-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom du client *</Label>
+              <Input 
+                id="name"
+                value={form.name} 
+                onChange={e => setForm({ ...form, name: e.target.value })} 
+                placeholder="Ex: Jean Dupont" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="initials">Initiales (Avatar)</Label>
+              <Input 
+                id="initials"
+                value={form.initials} 
+                onChange={e => setForm({ ...form, initials: e.target.value.toUpperCase().slice(0, 3) })} 
+                placeholder="Ex: JD"
+                maxLength={3}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="role">Rôle / Poste</Label>
+              <Input 
+                id="role"
+                value={form.role} 
+                onChange={e => setForm({ ...form, role: e.target.value })} 
+                placeholder="Ex: Responsable DSI" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company">Entreprise / Lieu</Label>
+              <Input 
+                id="company"
+                value={form.company} 
+                onChange={e => setForm({ ...form, company: e.target.value })} 
+                placeholder="Ex: Mairie de Cayenne" 
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Note globale</Label>
+            <StarRating 
+              value={form.rating} 
+              onChange={v => setForm({ ...form, rating: v })} 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="quote">Le témoignage *</Label>
+            <Textarea 
+              id="quote"
+              rows={4}
+              value={form.quote} 
+              onChange={e => setForm({ ...form, quote: e.target.value })} 
+              placeholder="Ce que le client dit de vos services..."
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+            <Button variant="ghost" onClick={() => setModalOpen(false)}>Annuler</Button>
+            <Button onClick={handleSubmit}>
+              {editIndex !== null ? 'Mettre à jour' : 'Ajouter le témoignage'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

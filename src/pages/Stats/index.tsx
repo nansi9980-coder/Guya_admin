@@ -22,7 +22,7 @@ export default function StatsPage() {
   const rate = total > 0 ? Math.round((read / total) * 100) : 0
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <PageHeader title="Statistiques" description="Analyse de l'activité du mois en cours" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

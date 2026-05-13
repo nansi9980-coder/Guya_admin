@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { mediasApi } from '@/api'
 import type { Media } from '@/types'
 import { formatDate, formatFileSize } from '@/lib/utils'
+import { getMediaUrl } from '@/lib/media'
 import {
   Card, CardContent, PageHeader, Button, Spinner, EmptyState, Modal, Label, Input,
 } from '@/components/ui'
@@ -59,7 +60,7 @@ export default function MediasPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="Médiathèque"
         description={`${medias.length} fichier${medias.length > 1 ? 's' : ''}`}
@@ -118,7 +119,7 @@ export default function MediasPage() {
               onClick={() => setPreview(m)}
             >
               {m.mimetype?.startsWith('image/') ? (
-                <img src={m.url} alt={m.alt || m.originalName} className="w-full h-full object-cover" />
+                <img src={getMediaUrl(m.url)} alt={m.alt || m.originalName} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <ImageIcon className="w-8 h-8 text-muted-foreground" />
@@ -126,7 +127,7 @@ export default function MediasPage() {
               )}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <button
-                  onClick={e => { e.stopPropagation(); copyUrl(m.url) }}
+                  onClick={e => { e.stopPropagation(); copyUrl(getMediaUrl(m.url)) }}
                   className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
                 >
                   <Copy className="w-4 h-4" />
@@ -152,7 +153,7 @@ export default function MediasPage() {
           <div className="space-y-4">
             <div className="rounded-xl overflow-hidden bg-muted max-h-80 flex items-center justify-center">
               {preview.mimetype?.startsWith('image/') ? (
-                <img src={preview.url} alt={preview.alt || preview.originalName} className="max-h-80 max-w-full object-contain" />
+                <img src={getMediaUrl(preview.url)} alt={preview.alt || preview.originalName} className="max-h-80 max-w-full object-contain" />
               ) : (
                 <div className="py-16 text-muted-foreground"><ImageIcon className="w-16 h-16" /></div>
               )}
@@ -166,8 +167,8 @@ export default function MediasPage() {
             <div>
               <p className="text-xs text-muted-foreground mb-1">URL</p>
               <div className="flex gap-2">
-                <input readOnly value={preview.url} className="flex-1 rounded-lg border border-input bg-muted px-3 py-2 text-xs font-mono" />
-                <Button size="sm" variant="outline" onClick={() => copyUrl(preview.url)}><Copy className="w-4 h-4" /></Button>
+                <input readOnly value={getMediaUrl(preview.url)} className="flex-1 rounded-lg border border-input bg-muted px-3 py-2 text-xs font-mono" />
+                <Button size="sm" variant="outline" onClick={() => copyUrl(getMediaUrl(preview.url))}><Copy className="w-4 h-4" /></Button>
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">

@@ -163,7 +163,7 @@ export default function UtilisateursPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="Utilisateurs"
         description={tab === 'team' ? `${users.length} compte${users.length > 1 ? 's' : ''} admin` : `${clients.length} client${clients.length > 1 ? 's' : ''} enregistré${clients.length > 1 ? 's' : ''}`}

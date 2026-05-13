@@ -272,7 +272,7 @@ export default function DevisPage() {
   const totalPages = Math.ceil(total / 15)
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="Prises de contact"
         description={`${total} demandes au total`}

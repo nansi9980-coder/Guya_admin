@@ -213,7 +213,7 @@ export function ParametresPage() {
   if (loading) return <Card><CardContent className="flex justify-center py-16"><Spinner size="lg" /></CardContent></Card>
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="Paramètres"
         description="Configuration générale de l'application"
