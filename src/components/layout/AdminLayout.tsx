@@ -155,7 +155,7 @@ export default function AdminLayout() {
             </button>
             {/* Voir le site */}
             <a
-              href="https://guya-fibre-three.vercel.app/"
+              href="https://guya-fibre.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"

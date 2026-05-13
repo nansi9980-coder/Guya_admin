@@ -247,7 +247,7 @@ export default function SiteContentPage() {
         title="Contenu du site"
         description="Modifiez les textes et contenus affichés sur le site vitrine"
         action={
-          <a href="https://guya-fibre-three.vercel.app/" target="_blank" rel="noopener noreferrer"
+          <a href="https://guya-fibre.vercel.app/" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors">
             <Globe className="w-4 h-4" />Voir le site
           </a>
