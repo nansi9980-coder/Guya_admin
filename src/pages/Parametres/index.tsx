@@ -234,7 +234,14 @@ export function ParametresPage() {
           <div><Label>Nom de l'entreprise</Label><Input {...f('companyName')} placeholder="GUYA FIBRE" /></div>
           <div><Label>Email de contact</Label><Input type="email" {...f('companyEmail')} placeholder="contact@guyafibre.com" /></div>
           <div><Label>Téléphone</Label><Input {...f('companyPhone')} placeholder="+594 0594 …" /></div>
-          <div><Label>Adresse</Label><Input {...f('companyAddress')} placeholder="Cayenne, Guyane" /></div>
+          <div><Label>Adresse (rue)</Label><Input {...f('companyAddress')} placeholder="12 Rue des Palmiers" /></div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div><Label>Code postal</Label><Input {...f('companyPostalCode')} placeholder="97320" /></div>
+            <div><Label>Ville</Label><Input {...f('companyCity')} placeholder="Saint-Laurent-du-Maroni" /></div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Cette adresse est utilisée sur le site : les zones carte redirigent vers Google Maps avec ces coordonnées.
+          </p>
           <div><Label>WhatsApp</Label><Input {...f('whatsappNumber')} placeholder="+594 …" /></div>
         </Section>
 

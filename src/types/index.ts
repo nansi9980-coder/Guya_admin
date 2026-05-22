@@ -177,6 +177,8 @@ export interface Settings {
   companyEmail?: string
   companyPhone?: string
   companyAddress?: string
+  companyCity?: string
+  companyPostalCode?: string
   smtpHost?: string
   smtpPort?: string
   smtpUser?: string

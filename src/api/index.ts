@@ -188,6 +188,8 @@ export const settingsApi = {
       companyEmail: company.email,
       companyPhone: company.phone,
       companyAddress: company.address,
+      companyCity: company.city,
+      companyPostalCode: company.postalCode,
       whatsappNumber: site.whatsappNumber,
       smtpHost: smtp.host,
       smtpPort: smtp.port,
@@ -204,6 +206,8 @@ export const settingsApi = {
     if (data.companyEmail !== undefined) company.email = data.companyEmail
     if (data.companyPhone !== undefined) company.phone = data.companyPhone
     if (data.companyAddress !== undefined) company.address = data.companyAddress
+    if (data.companyCity !== undefined) company.city = data.companyCity
+    if (data.companyPostalCode !== undefined) company.postalCode = data.companyPostalCode
     if (data.whatsappNumber !== undefined) site.whatsappNumber = data.whatsappNumber
     if (data.smtpHost !== undefined) smtp.host = data.smtpHost
     if (data.smtpPort !== undefined) smtp.port = data.smtpPort
