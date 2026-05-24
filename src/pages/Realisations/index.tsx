@@ -37,7 +37,7 @@ function ImageUploadField({ images, onChange }: { images: string[]; onChange: (i
     setUploading(true)
     try {
       const uploads = await Promise.all(
-        Array.from(files).map(f => mediasApi.upload(f, 'Image réalisation'))
+        Array.from(files).map(f => mediasApi.upload(f, 'realisations'))
       )
       onChange([...images, ...uploads.map((m: any) => m.url)])
       toast.success(`${uploads.length} image${uploads.length > 1 ? 's' : ''} uploadée${uploads.length > 1 ? 's' : ''}`)
