@@ -67,7 +67,7 @@ function ImageUploadBtn({ value, onChange }: { value?: string; onChange: (url: s
   const handleFile = async (file: File) => {
     setUploading(true)
     try {
-      const media = await mediasApi.upload(file, 'Image service')
+      const media = await mediasApi.upload(file, 'services')
       onChange(media.url)
       toast.success('Image uploadée')
     } catch { toast.error("Erreur upload") }

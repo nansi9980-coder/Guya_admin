@@ -114,10 +114,10 @@ export const realisationsApi = {
 export const mediasApi = {
   getAll: (params?: PaginationParams) =>
     api.get('/medias', { params }).then(r => r.data),
-  upload: (file: File, alt?: string) => {
+  upload: (file: File, folder?: string) => {
     const form = new FormData()
     form.append('file', file)
-    if (alt) form.append('alt', alt)
+    if (folder) form.append('folder', folder)
     return api.post('/medias/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }).then(r => r.data)
