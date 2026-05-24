@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { servicesApi, mediasApi } from '@/api'
+import { useEffect, useState, useCallback } from 'react'
+import { servicesApi } from '@/api'
 import type { Service } from '@/types'
 import { cn } from '@/lib/utils'
-import { getMediaUrl } from '@/lib/media'
+import { SERVICE_ICON_OPTIONS, getServiceIconOption } from '@/lib/service-icons'
 import {
   Card, CardContent, PageHeader, Button,
   Input, Label, Textarea, Switch, Spinner, EmptyState, Modal,
 } from '@/components/ui'
 import { toast } from 'sonner'
-import { Plus, Edit, Trash2, Wrench, X, ImageIcon } from 'lucide-react'
+import { Plus, Edit, Trash2, Wrench, X } from 'lucide-react'
 
 function slugify(str: string) {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -17,13 +17,12 @@ function slugify(str: string) {
 const emptyService = (): Partial<Service> => ({
   slug: '',
   number: '',
-  icon: '',
+  icon: 'Wifi',
   titleFr: '',
   titleEn: '',
   descFr: '',
   descEn: '',
   features: [],
-  image: '',
   benefit: '',
   isActive: true,
   order: 0,
@@ -41,7 +40,7 @@ function FeaturesField({ value, onChange }: { value: string[]; onChange: (v: str
         {value.map((f, i) => (
           <div key={i} className="flex items-center gap-2 text-sm">
             <span className="flex-1 px-3 py-1.5 rounded-lg bg-muted text-foreground">{f}</span>
-            <button onClick={() => onChange(value.filter((_, j) => j !== i))} className="p-1 text-muted-foreground hover:text-destructive transition-colors">
+            <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="p-1 text-muted-foreground hover:text-destructive transition-colors">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -61,43 +60,67 @@ function FeaturesField({ value, onChange }: { value: string[]; onChange: (v: str
   )
 }
 
-function ImageUploadBtn({ value, onChange }: { value?: string; onChange: (url: string) => void }) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [uploading, setUploading] = useState(false)
-  const handleFile = async (file: File) => {
-    setUploading(true)
-    try {
-      const media = await mediasApi.upload(file, 'services')
-      onChange(media.url)
-      toast.success('Image uploadée')
-    } catch { toast.error("Erreur upload") }
-    setUploading(false)
-  }
+function IconPickerField({ value, onChange }: { value?: string; onChange: (icon: string) => void }) {
+  const selected = getServiceIconOption(value)
+
   return (
-    <div className="space-y-2">
-      {value && (
-        <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted border border-border">
-          <img src={getMediaUrl(value)} alt="Service" className="w-full h-full object-cover" />
-          <button onClick={() => onChange('')} className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors">
-            <X className="w-3.5 h-3.5" />
-          </button>
+    <div className="space-y-3">
+      <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          {selected ? (
+            <selected.Icon className="h-6 w-6" />
+          ) : (
+            <span className="text-2xl leading-none" aria-hidden>{value || '🔧'}</span>
+          )}
         </div>
-      )}
-      <div
-        className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors cursor-pointer bg-muted/30"
-        onClick={() => inputRef.current?.click()}
-      >
-        {uploading ? <Spinner size="sm" /> : (
-          <>
-            <ImageIcon className="w-5 h-5 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Glissez ou <span className="text-primary font-medium">parcourir</span></p>
-          </>
-        )}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">Icône sélectionnée</p>
+          <p className="text-sm font-semibold text-foreground">
+            {selected?.label ?? 'Emoji actuel — choisissez une icône ci-dessous pour remplacer'}
+          </p>
+        </div>
       </div>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+        {SERVICE_ICON_OPTIONS.map(({ value: iconValue, label, Icon }) => {
+          const isSelected = value === iconValue
+          return (
+            <button
+              key={iconValue}
+              type="button"
+              onClick={() => onChange(iconValue)}
+              className={cn(
+                'flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all',
+                isSelected
+                  ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
+                  : 'border-border bg-card hover:border-primary/40 hover:bg-muted/50'
+              )}
+            >
+              <span className={cn(
+                'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+                isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-primary'
+              )}>
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="text-sm font-medium text-foreground leading-tight">{label}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
+}
+
+function ServiceCardIcon({ icon, size = 'lg' }: { icon?: string; size?: 'sm' | 'lg' }) {
+  const option = getServiceIconOption(icon)
+  const iconClass = size === 'lg' ? 'h-14 w-14 text-primary' : 'h-5 w-5 text-primary shrink-0'
+  if (option) {
+    const { Icon } = option
+    return <Icon className={iconClass} />
+  }
+  if (icon?.trim()) {
+    return <span className={size === 'lg' ? 'text-5xl leading-none' : 'text-xl leading-none'} aria-hidden>{icon}</span>
+  }
+  return <Wrench className={iconClass} />
 }
 
 export default function ServicesPage() {
@@ -153,8 +176,9 @@ export default function ServicesPage() {
         descFr: form.descFr,
         descEn: form.descEn,
         features: form.features || [],
-        image: form.image,
+        image: '',
         benefit: form.benefit,
+        order: form.order ?? 0,
         ...(editItem ? { isActive: form.isActive } : {}),
       }
       if (editItem) await servicesApi.update(editItem.id, payload)
@@ -199,27 +223,21 @@ export default function ServicesPage() {
           {services.map(s => (
             <Card key={s.id} className={cn(!s.isActive && 'opacity-60', "group")}>
               <CardContent className="p-0 overflow-hidden">
-                <div className="aspect-video relative overflow-hidden bg-muted border-b">
-                  {s.image ? (
-                    <img src={getMediaUrl(s.image)} alt={s.titleFr} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <ImageIcon className="w-8 h-8 opacity-20" />
-                    </div>
-                  )}
+                <div className="aspect-video relative overflow-hidden bg-gradient-to-br from-primary/10 via-muted/30 to-muted border-b flex items-center justify-center">
+                  <ServiceCardIcon icon={s.icon} />
                   <div className="absolute top-2 left-2">
                     <div className="px-2 py-1 rounded-lg bg-background/80 backdrop-blur-sm text-[10px] font-bold text-primary border border-border/50 shadow-sm">
                       #{s.number}
                     </div>
                   </div>
                   <div className="absolute top-2 right-2 flex gap-1">
-                     <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-white transition-all text-muted-foreground border border-border/50 shadow-sm"><Edit className="w-3.5 h-3.5" /></button>
-                     <button onClick={() => handleDelete(s.id)} className="p-1.5 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-white transition-all text-muted-foreground border border-border/50 shadow-sm"><Trash2 className="w-3.5 h-3.5" /></button>
+                     <button type="button" onClick={() => openEdit(s)} className="p-1.5 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-white transition-all text-muted-foreground border border-border/50 shadow-sm"><Edit className="w-3.5 h-3.5" /></button>
+                     <button type="button" onClick={() => handleDelete(s.id)} className="p-1.5 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-white transition-all text-muted-foreground border border-border/50 shadow-sm"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">{s.icon || '🔧'}</span>
+                    <ServiceCardIcon icon={s.icon} size="sm" />
                     <h3 className="font-display font-semibold text-foreground leading-tight">{s.titleFr}</h3>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">{s.descFr}</p>
@@ -227,6 +245,7 @@ export default function ServicesPage() {
                   <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         onClick={() => handleToggle(s)}
                         className={cn('text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider cursor-pointer transition-all border shadow-sm',
                           s.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
@@ -265,10 +284,12 @@ export default function ServicesPage() {
               <Label>Numéro * (ex: 01)</Label>
               <Input value={form.number || ''} onChange={e => setForm(f => ({ ...f, number: e.target.value }))} placeholder="01" />
             </div>
-            <div className="space-y-2">
-              <Label>Icône (emoji) *</Label>
-              <Input value={form.icon || ''} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))} placeholder="🔧" />
-            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Icône du service *</Label>
+            <p className="text-xs text-muted-foreground">Choisissez une icône — elle sera affichée sur le site vitrine à la place d&apos;une image.</p>
+            <IconPickerField value={form.icon} onChange={icon => setForm(f => ({ ...f, icon }))} />
           </div>
 
           <div className="space-y-2">
@@ -287,17 +308,9 @@ export default function ServicesPage() {
               <Input value={form.benefit || ''} onChange={e => setForm(f => ({ ...f, benefit: e.target.value }))} placeholder="Ex: Connexion ultra-rapide garantie" />
             </div>
              <div className="space-y-2">
-              <Label>Ordre d'affichage</Label>
+              <Label>Ordre d&apos;affichage</Label>
               <Input type="number" value={form.order || 0} onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))} />
             </div>
-          </div>
-
-          <div className="space-y-3 p-4 rounded-xl border border-border bg-muted/20">
-            <Label className="flex items-center gap-2 text-primary">
-              <ImageIcon className="w-4 h-4" />
-              Image d'illustration
-            </Label>
-            <ImageUploadBtn value={form.image} onChange={image => setForm(f => ({ ...f, image }))} />
           </div>
 
           {editItem && (
